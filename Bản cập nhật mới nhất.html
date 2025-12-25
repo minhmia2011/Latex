@@ -1,0 +1,2207 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Công cụ hỗ trợ vẽ biểu đồ và vẽ hình LaTeX (Pro Version)</title>
+    <style type="text/css">@font-face {font-family:Inter;font-style:normal;font-weight:300;src:url(https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuOKfAZ9hjp-Ek-_EeA.woff2) format('woff2');} @font-face {font-family:Inter;font-style:normal;font-weight:400;src:url(https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hjp-Ek-_EeA.woff2) format('woff2');} @font-face {font-family:Inter;font-style:normal;font-weight:500;src:url(https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuI6fAZ9hjp-Ek-_EeA.woff2) format('woff2');} @font-face {font-family:Inter;font-style:normal;font-weight:600;src:url(https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuGKYAZ9hjp-Ek-_EeA.woff2) format('woff2');} @font-face {font-family:Inter;font-style:normal;font-weight:700;src:url(https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuFuYAZ9hjp-Ek-_EeA.woff2) format('woff2');}</style>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            /* --- Educational Theme Palette (Light & Clean) --- */
+            --bg-sidebar: #ffffff;      
+            --bg-body: #f3f4f6;         
+            --bg-card: #ffffff;
+            --text-main: #1f2937;       
+            --text-heading: #111827;
+            --primary: #2563eb;         
+            --primary-hover: #1d4ed8;
+            --accent: #4f46e5;
+            --border: #d1d5db;          
+            --input-bg: #ffffff;
+            --sidebar-text: #4b5563;
+            --sidebar-active: #2563eb;
+            --sidebar-active-bg: #eff6ff;
+            --sidebar-border: #e5e7eb;
+        }
+        #geo-canvas {
+        touch-action: none;
+    }
+
+        body { 
+            margin: 0; padding: 0; height: 100vh; display: flex; 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            background-color: var(--bg-body); 
+            color: var(--text-main); font-size: 14px; 
+            overflow: hidden; 
+        }
+        
+        /* --- SIDEBAR STYLE --- */
+        #sidebar { 
+            width: 240px; background: var(--bg-sidebar); 
+            display: flex; flex-direction: column; flex-shrink: 0; z-index: 100;
+            border-right: 1px solid var(--sidebar-border);
+            box-shadow: 2px 0 5px rgba(0,0,0,0.02);
+            transition: all 0.3s;
+        }
+        .brand-box { 
+            padding: 18px 20px; font-weight: 700; color: var(--primary); font-size: 1.2rem; 
+            display: flex; align-items: center; gap: 10px; 
+            border-bottom: 1px solid var(--sidebar-border); letter-spacing: 0.5px;
+        }
+        .brand-box i { color: var(--primary); font-size: 1.4rem; }
+        .menu-list { flex: 1; padding: 15px 10px; overflow-y: auto; }
+        .menu-item { 
+            display: flex; align-items: center; width: 100%; text-align: left; 
+            padding: 12px 15px; margin-bottom: 5px; border: none; background: transparent; 
+            border-radius: 8px; color: var(--sidebar-text); font-weight: 500; font-size: 14px; 
+            cursor: pointer; transition: all 0.2s ease; 
+        }
+        .menu-item:hover { background-color: #f9fafb; color: var(--primary); }
+        .menu-item.active { 
+            background-color: var(--sidebar-active-bg); 
+            color: var(--sidebar-active); 
+            font-weight: 600;
+        }
+        .menu-item i { width: 24px; text-align: center; margin-right: 10px; font-size: 16px; }
+
+        /* --- MAIN CONTENT --- */
+        #main-wrapper { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+        
+        .top-bar { 
+            height: 56px; background: var(--bg-card); border-bottom: 1px solid var(--border); 
+            display: flex; align-items: center; padding: 0 20px; justify-content: space-between; 
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+        }
+        .app-title { font-weight: 700; color: var(--text-heading); font-size: 16px; letter-spacing: 0.5px; }
+
+        /* --- COMPONENTS STYLE --- */
+        .card { 
+            border: 1px solid var(--border); border-radius: 8px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03); margin-bottom: 15px; 
+            background: #fff; overflow: hidden;
+        }
+        .card-header { 
+            background: #f8fafc; border-bottom: 1px solid var(--border); 
+            font-weight: 600; font-size: 13px; color: var(--text-heading);
+            padding: 12px 15px; text-transform: uppercase; letter-spacing: 0.5px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .card-header i { color: var(--primary); }
+        .card-body.compact-body { padding: 15px; }
+
+        .input-group-sm .input-group-text { 
+            background-color: #f9fafb; border: 1px solid var(--border); 
+            border-right: none; color: var(--text-main); font-weight: 500; 
+            font-size: 13px; min-width: 70px; justify-content: center;
+            border-radius: 6px 0 0 6px;
+        }
+        .form-control, .form-select { 
+            background-color: #fff; border: 1px solid var(--border); 
+            font-size: 13px; color: var(--text-main); padding: 6px 10px;
+            border-radius: 6px; transition: all 0.2s;
+        }
+        .input-group-sm > .form-control { border-radius: 0 6px 6px 0; }
+        .form-control:focus, .form-select:focus { 
+            border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); 
+            z-index: 2; outline: none;
+        }
+        
+        .table { margin-bottom: 0; }
+        .table th { 
+            background-color: #f1f5f9; color: var(--text-heading); 
+            font-weight: 600; font-size: 12px; text-transform: uppercase; border-bottom: 2px solid var(--border);
+            padding: 10px 8px;
+        }
+        .table td { padding: 8px; vertical-align: middle; border-bottom: 1px solid var(--border); }
+        
+        .table input.form-control { 
+            border: 1px solid #ced4da !important;
+            background: #fff !important;
+            padding: 4px 8px; 
+            height: 30px; 
+            border-radius: 4px;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .table input.form-control:focus { 
+            border-color: var(--primary) !important; 
+            background: #fff !important; 
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2) !important;
+        }
+
+        .btn { font-weight: 500; border-radius: 6px; transition: all 0.2s; }
+        .btn-primary { background-color: var(--primary); border-color: var(--primary); }
+        .btn-primary:hover { background-color: var(--primary-hover); border-color: var(--primary-hover); }
+        .btn-sm { font-size: 13px; padding: 5px 12px; height: 32px; display: inline-flex; align-items: center; gap: 6px; justify-content: center; }
+        
+        .nav-tabs { border-bottom: 1px solid var(--border); gap: 5px; padding: 0 15px; background: #fff; }
+        .nav-link { 
+            border: none; border-bottom: 3px solid transparent; color: var(--sidebar-text); 
+            font-weight: 500; font-size: 13px; padding: 12px 15px; border-radius: 0; 
+        }
+        .nav-link:hover { color: var(--primary); background: rgba(37,99,235,0.05); }
+        .nav-link.active { color: var(--primary); border-bottom-color: var(--primary); background: transparent; font-weight: 600; }
+
+        .app-view { display: none; height: calc(100vh - 56px); overflow: hidden; width: 100%; }
+        .app-view.active { display: block; }
+        #chart-app { padding: 20px; overflow-y: auto; background: var(--bg-body); }
+        
+        textarea.form-control { 
+            background: #1e293b; color: #f8fafc; font-family: 'Consolas', 'Monaco', monospace; 
+            font-size: 13px; border: 1px solid var(--border); line-height: 1.6; border-radius: 6px;
+        }
+        
+        /* --- GEOMETRY UI --- */
+        #geo-app { display: none; flex-direction: row; height: 100%; width: 100%; }
+        #geo-app.active { display: flex; }
+        
+        #geo-toolbar { 
+            width: 250px; background: #fff; border-right: 1px solid var(--border); 
+            padding: 0; overflow-y: auto; display: flex; flex-direction: column; flex-shrink: 0;
+        }
+        
+        .geo-tool-group { padding: 15px; border-bottom: 1px solid var(--border); }
+        .geo-tool-group h4 { 
+            font-size: 12px; color: var(--primary); margin: 0 0 10px; 
+            font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 5px;
+        }
+        .tool-grid { display: grid; grid-template-columns: 1fr; gap: 5px; }
+        #geo-toolbar button { 
+            width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid transparent; 
+            background: transparent; text-align: left; font-size: 13px; color: var(--text-main); 
+            display: flex; align-items: center; gap: 10px; transition: 0.1s;
+        }
+        #geo-toolbar button:hover { background: #f3f4f6; color: var(--primary); border-color: #e5e7eb; }
+        #geo-toolbar button.active { background: #eff6ff; color: var(--primary); border-color: var(--primary); font-weight: 600; box-shadow: 0 1px 2px rgba(37,99,235,0.1); }
+        #geo-toolbar button i { width: 18px; text-align: center; opacity: 0.8; }
+        
+        #geo-main-area { flex: 1; display: flex; flex-direction: column; padding: 15px; background: #e5e7eb; transition: padding 0.3s; overflow: hidden; }
+        
+        #geo-controls { 
+            background: #fff; padding: 10px 15px; border-radius: 8px; border: 1px solid var(--border);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03); display: flex; gap: 15px; margin-bottom: 10px; 
+            align-items: center; flex-wrap: wrap; font-size: 13px; flex-shrink: 0;
+        }
+        .ctrl-group { display: flex; align-items: center; gap: 8px; padding-right: 15px; border-right: 1px solid var(--border); }
+        
+        #geo-canvas-container { 
+            flex: 1; background: #fff; border-radius: 8px; border: 1px solid var(--border); 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); position: relative; overflow: hidden; 
+            touch-action: none; 
+            cursor: crosshair;
+        }
+        
+        #geo-code-panel { 
+            width: 300px; background: #fff; display: flex; flex-direction: column; 
+            border-left: 1px solid var(--border); z-index: 50; flex-shrink: 0;
+        }
+        #geo-code-header { padding: 12px 15px; background: #f8fafc; color: var(--text-heading); font-weight: 700; font-size: 13px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+        #geo-code { padding: 15px; background: #1e293b; border: none; color: #e2e8f0; font-size: 13px; flex: 1; resize: none; border-radius: 0; }
+        #geo-code-footer { padding: 8px; font-size: 11px; text-align: center; color: #64748b; background: #f8fafc; border-top: 1px solid var(--border); }
+        
+        /* Modal & Status */
+        .geo-status { 
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); 
+            background: rgba(30, 41, 59, 0.9); backdrop-filter: blur(4px);
+            color: #fff; padding: 10px 25px; border-radius: 30px; display: none; 
+            font-size: 13px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); z-index: 2000;
+        }
+        #geo-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(2px); justify-content: center; align-items: center; z-index: 3000; }
+        .geo-modal-box { background: #fff; padding: 25px; border-radius: 12px; width: 320px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); border: 1px solid var(--border); }
+
+        /* --- FULLSCREEN EXPAND MODE --- */
+        body.fullscreen-mode #sidebar { display: none !important; }
+        body.fullscreen-mode .top-bar { display: none !important; }
+        body.fullscreen-mode #geo-code-panel { display: none !important; }
+        body.fullscreen-mode #geo-main-area { padding: 0; background: #fff; }
+        body.fullscreen-mode #geo-controls { 
+            border-radius: 0; border-left: none; border-right: none; border-top: none; 
+            margin-bottom: 0; z-index: 10;
+        }
+        body.fullscreen-mode #geo-canvas-container { 
+            border-radius: 0; border: none; 
+        }
+        
+        /* --- RESPONSIVE MOBILE FIX --- */
+        @media (max-width: 768px) {
+            #sidebar { display: none; }
+            #geo-toolbar { width: 60px; }
+            .geo-tool-group h4 span { display: none; } 
+            #geo-toolbar button { padding: 10px; justify-content: center; }
+            #geo-toolbar button span { display: none; } 
+            #geo-toolbar button i { margin: 0; font-size: 18px; }
+            #geo-code-panel { display: none; } 
+            .ctrl-group span { display: none; }
+        }
+    </style>
+</head>
+<!-- ================== HƯỚNG DẪN SỬ DỤNG ================== -->
+<div class="modal fade" id="guideModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title text-primary fw-bold">
+          <i class="fas fa-book me-2"></i>HƯỚNG DẪN SỬ DỤNG
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" style="font-size:14px; line-height:1.7">
+
+        <h6 class="fw-bold text-primary">I. Biểu đồ LaTeX</h6>
+        <ul>
+          <li>Chọn loại biểu đồ: Tròn, Cột, Cột kép, Đường, Tranh.</li>
+          <li>Nhập dữ liệu → bấm <b>Tạo Code</b>.</li>
+          <li>Sao chép mã LaTeX và dán vào Overleaf hoặc TeX Editor.</li>
+        </ul>
+
+        <h6 class="fw-bold text-primary mt-3">II. Vẽ hình tkz-euclide</h6>
+        <ul>
+          <li>Chọn công cụ bên trái (điểm, đoạn, đường, đường tròn…).</li>
+          <li>Click trên vùng vẽ để tạo hình.</li>
+          <li>Mã tkz-euclide tự động sinh ở khung bên phải.</li>
+          <li>Bấm <b>Copy Code</b> để sử dụng.</li>
+        </ul>
+
+        <h6 class="fw-bold text-primary mt-3">III. Phím tắt</h6>
+        <ul>
+          <li><b>Ctrl + Z</b>: Hoàn tác</li>
+          <li><b>Ctrl + Y</b>: Làm lại</li>
+          <li><b>Chuột</b>: Vẽ / Di chuyển điểm</li>
+        </ul>
+
+        <h6 class="fw-bold text-primary mt-3">IV. Lưu ý</h6>
+        <ul>
+          <li>Cần gói <code>tikz</code>, <code>tkz-euclide</code>, <code>patterns</code>.</li>
+          <li>Dùng tốt nhất trên máy tính.</li>
+        </ul>
+
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đóng</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<body>
+
+<div id="sidebar">
+    <div class="brand-box">
+        <i class="fas fa-shapes"></i> Công cụ LaTeX
+    </div>
+    <div class="menu-list">
+        <button class="menu-item active" onclick="switchApp('chart')" id="btn-chart">
+            <i class="fas fa-chart-pie"></i> Biểu đồ
+        </button>
+        <button class="menu-item" onclick="switchApp('geo')" id="btn-geo">
+            <i class="fas fa-drafting-compass"></i> Vẽ hình
+        </button>
+        <button class="menu-item" onclick="openGuide()" id="btn-guide">
+    <i class="fas fa-question-circle"></i> Hướng dẫn
+</button>
+
+    </div>
+    <div class="p-3 border-top text-center text-muted" style="font-size:11px">
+        SẢN PHẨM CỦA TOÁN.VN NỘI BÀI
+    </div>
+</div>
+
+<div id="main-wrapper">
+    <div class="top-bar">
+        <div class="app-title" id="page-title">Biểu đồ LaTeX</div>
+        <div id="geo-header-actions" style="display:none; gap: 8px;">
+            <button class="btn btn-sm btn-outline-secondary border" id="geo-undo" disabled title="Hoàn tác (Ctrl+Z)"><i class="fas fa-undo"></i></button>
+            <button class="btn btn-sm btn-outline-secondary border" id="geo-redo" disabled title="Làm lại (Ctrl+Y)"><i class="fas fa-redo"></i></button>
+            <div style="width: 1px; height: 20px; background: var(--border); margin: 0 5px;"></div>
+            <button class="btn btn-sm btn-success" id="geo-copy"><i class="fas fa-copy"></i> Copy Code</button>
+            <button class="btn btn-sm btn-primary" id="geo-export"><i class="fas fa-download"></i> PNG</button>
+            <button class="btn btn-sm btn-outline-info" id="geo-zoom-reset" title="Reset zoom"><i class="fas fa-search-minus"></i></button>
+        </div>
+    </div>
+
+    <div id="chart-app" class="app-view active">
+        <ul class="nav nav-tabs mb-4" id="chartTabs" role="tablist">
+            <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#pie"><i class="fas fa-chart-pie me-2"></i>Tròn</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#bar"><i class="fas fa-chart-bar me-2"></i>Cột</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#doublebar"><i class="fas fa-chart-bar me-2"></i>Cột kép</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#line"><i class="fas fa-chart-line me-2"></i>Đường</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#pictogram"><i class="fas fa-icons me-2"></i>Tranh</button></li>
+        </ul>
+
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="pie">
+                <div class="row h-100 g-3">
+                    <div class="col-md-5 d-flex flex-column">
+                        <div class="card">
+                            <div class="card-header"><i class="fas fa-cog"></i> Cài đặt</div>
+                            <div class="card-body compact-body">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text">Tiêu đề</span>
+                                    <input type="text" class="form-control" id="pie-title" placeholder="Ví dụ: Tỉ lệ học sinh...">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card flex-grow-1">
+                            <div class="card-header"><i class="fas fa-database"></i> Dữ liệu</div>
+                            <div class="card-body compact-body d-flex flex-column">
+                                <div style="flex:1; overflow-y:auto; margin-bottom:10px">
+                                    <table class="table" id="pie-table">
+                                        <thead><tr><th>Nội dung</th><th width="80">%</th><th>Pattern</th><th width="30"></th></tr></thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                    <span id="pie-sum" class="badge bg-primary bg-opacity-10 text-primary fs-6">Tổng: 0%</span>
+                                    <button class="btn btn-sm btn-success" onclick="addRow('pie')"><i class="fas fa-plus"></i> Thêm dòng</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-primary flex-grow-1" onclick="generatePie()"><i class="fas fa-magic"></i> Tạo Code</button>
+                            <button class="btn btn-outline-secondary" onclick="copyCode('pie-output')">Copy</button>
+                        </div>
+                    </div>
+                    <div class="col-md-7">
+                        <textarea class="form-control h-100" id="pie-output" placeholder="Mã LaTeX sẽ hiển thị tại đây..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="bar">
+                <div class="row h-100 g-3">
+                    <div class="col-md-5 d-flex flex-column">
+                        <div class="card">
+                            <div class="card-header"><i class="fas fa-cog"></i> Cài đặt</div>
+                            <div class="card-body compact-body">
+                                <div class="input-group input-group-sm mb-2">
+                                    <span class="input-group-text">Tiêu đề</span>
+                                    <input type="text" class="form-control" id="bar-title">
+                                </div>
+                                <div class="row g-2 mb-2">
+                                    <div class="col-4"><div class="input-group input-group-sm"><span class="input-group-text">Ox</span><input type="text" class="form-control" id="bar-xlabel"></div></div>
+                                    <div class="col-4"><div class="input-group input-group-sm"><span class="input-group-text">Oy</span><input type="text" class="form-control" id="bar-ylabel"></div></div>
+                                    <div class="col-4"><div class="input-group input-group-sm"><span class="input-group-text">Hệ số</span><input type="text" class="form-control" id="bar-oyfactor" value="10"></div></div>
+                                </div>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text">Màu</span>
+                                    <input type="text" class="form-control" id="bar-color" value="blue!60">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card flex-grow-1">
+                            <div class="card-header"><i class="fas fa-database"></i> Dữ liệu</div>
+                            <div class="card-body compact-body d-flex flex-column">
+                                <div style="flex:1; overflow-y:auto;">
+                                    <table class="table" id="bar-table">
+                                        <thead><tr><th>Nhãn</th><th>Giá trị</th><th width="30"></th></tr></thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                                <button class="btn btn-sm btn-success w-100 mt-2" onclick="addRow('bar')"><i class="fas fa-plus"></i> Thêm dòng</button>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-primary flex-grow-1" onclick="generateBar()">Tạo Code</button>
+                            <button class="btn btn-outline-secondary" onclick="copyCode('bar-output')">Copy</button>
+                        </div>
+                    </div>
+                    <div class="col-md-7"><textarea class="form-control h-100" id="bar-output"></textarea></div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="doublebar">
+                <div class="row h-100 g-3">
+                    <div class="col-md-5 d-flex flex-column">
+                        <div class="card">
+                            <div class="card-header"><i class="fas fa-cog"></i> Cài đặt</div>
+                            <div class="card-body compact-body">
+                                <div class="input-group input-group-sm mb-2">
+                                    <span class="input-group-text">Tiêu đề</span>
+                                    <input type="text" class="form-control" id="doublebar-title">
+                                </div>
+                                <div class="row g-2 mb-2">
+                                    <div class="col-4"><div class="input-group input-group-sm"><span class="input-group-text">Ox</span><input type="text" class="form-control" id="doublebar-xlabel"></div></div>
+                                    <div class="col-4"><div class="input-group input-group-sm"><span class="input-group-text">Oy</span><input type="text" class="form-control" id="doublebar-ylabel"></div></div>
+                                    <div class="col-4"><div class="input-group input-group-sm"><span class="input-group-text">Hệ số</span><input type="text" class="form-control" id="doublebar-oyfactor" value="10"></div></div>
+                                </div>
+                                <div class="row g-2 mb-2">
+                                    <div class="col-6"><div class="input-group input-group-sm"><span class="input-group-text">N1</span><input type="text" class="form-control" id="doublebar-g1name" placeholder="Tên nhóm 1"></div></div>
+                                    <div class="col-6"><select class="form-select form-select-sm" id="doublebar-pattern1"><option value=""></option><option value="grid">grid</option><option value="dots">dots</option><option value="north east lines">north east lines</option><option value="bricks">bricks</option><option value="north west lines">north west lines</option></select></div>
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-6"><div class="input-group input-group-sm"><span class="input-group-text">N2</span><input type="text" class="form-control" id="doublebar-g2name" placeholder="Tên nhóm 2"></div></div>
+                                    <div class="col-6"><select class="form-select form-select-sm" id="doublebar-pattern2"><option value=""></option><option value="grid">grid</option><option value="dots">dots</option><option value="north west lines">north east lines</option><option value="bricks">bricks</option><option value="north west lines">north west lines</option></select></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card flex-grow-1">
+                            <div class="card-header"><i class="fas fa-database"></i> Dữ liệu</div>
+                            <div class="card-body compact-body d-flex flex-column">
+                                <div style="flex:1; overflow-y:auto;">
+                                    <table class="table" id="doublebar-table">
+                                        <thead><tr><th>Nhãn</th><th>Giá trị 1</th><th>Giá trị 2</th><th width="30"></th></tr></thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                                <button class="btn btn-sm btn-success w-100 mt-2" onclick="addRow('doublebar')"><i class="fas fa-plus"></i> Thêm dòng</button>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-primary flex-grow-1" onclick="generateDoubleBar()">Tạo Code</button>
+                            <button class="btn btn-outline-secondary" onclick="copyCode('doublebar-output')">Copy</button>
+                        </div>
+                    </div>
+                    <div class="col-md-7"><textarea class="form-control h-100" id="doublebar-output"></textarea></div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="line">
+                <div class="row h-100 g-3">
+                    <div class="col-md-5 d-flex flex-column">
+                        <div class="card">
+                            <div class="card-header"><i class="fas fa-cog"></i> Cài đặt</div>
+                            <div class="card-body compact-body">
+                                <div class="input-group input-group-sm mb-2">
+                                    <span class="input-group-text">Tiêu đề</span>
+                                    <input type="text" class="form-control" id="line-title">
+                                </div>
+                                <div class="row g-2 mb-2">
+                                    <div class="col-4"><div class="input-group input-group-sm"><span class="input-group-text">Ox</span><input type="text" class="form-control" id="line-xlabel"></div></div>
+                                    <div class="col-4"><div class="input-group input-group-sm"><span class="input-group-text">Oy</span><input type="text" class="form-control" id="line-ylabel"></div></div>
+                                    <div class="col-4"><div class="input-group input-group-sm"><span class="input-group-text">Hệ số</span><input type="text" class="form-control" id="line-oyfactor" value="10"></div></div>
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-4"><div class="input-group input-group-sm"><span class="input-group-text">Line</span><input type="text" class="form-control" id="line-linecolor" placeholder="Màu"></div></div>
+                                    <div class="col-4"><div class="input-group input-group-sm"><span class="input-group-text">Dot</span><input type="text" class="form-control" id="line-pointcolor" placeholder="Màu"></div></div>
+                                    <div class="col-4"><div class="input-group input-group-sm"><span class="input-group-text">Dày</span><input type="text" class="form-control" id="line-linewidth" value="1.5pt"></div></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card flex-grow-1">
+                            <div class="card-header"><i class="fas fa-database"></i> Dữ liệu</div>
+                            <div class="card-body compact-body d-flex flex-column">
+                                <div style="flex:1; overflow-y:auto;">
+                                    <table class="table" id="line-table">
+                                        <thead><tr><th>Nhãn</th><th>Giá trị</th><th width="30"></th></tr></thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                                <button class="btn btn-sm btn-success w-100 mt-2" onclick="addRow('line')"><i class="fas fa-plus"></i> Thêm điểm</button>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-primary flex-grow-1" onclick="generateLine()">Tạo Code</button>
+                            <button class="btn btn-outline-secondary" onclick="copyCode('line-output')">Copy</button>
+                        </div>
+                    </div>
+                    <div class="col-md-7"><textarea class="form-control h-100" id="line-output"></textarea></div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="pictogram">
+                <div class="row h-100 g-3">
+                    <div class="col-md-5 d-flex flex-column">
+                        <div class="card">
+                            <div class="card-header"><i class="fas fa-cog"></i> Cài đặt</div>
+                            <div class="card-body compact-body">
+                                <div class="input-group input-group-sm mb-2">
+                                    <span class="input-group-text">Tiêu đề</span>
+                                    <input type="text" class="form-control" id="pictogram-title">
+                                </div>
+                                <div class="row g-2 mb-2">
+                                    <div class="col-6">
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text">Icon</span>
+                                            <select class="form-select" id="pictogram-icon">
+                                                <option value="\faUser">Người (User)</option>
+                                                <option value="\faCar">Xe (Car)</option>
+                                                <option value="\faTree">Cây (Tree)</option>
+                                                <option value="\faStar">Sao (Star)</option>
+                                                <option value="\faHeart">Tim (Heart)</option>
+                                                <option value="\faSmile">Cười (Smile)</option>
+                                                <option value="\faMusic">Nhạc (Music)</option>
+                                                <option value="\faHome">Nhà (Home)</option>
+                                                <option value="\faBook">Sách (Book)</option>
+                                                <option value="\faAppleAlt">Táo (Apple)</option>
+                                                <option value="\faFish">Cá (Fish)</option>
+                                                <option value="\faDog">Chó (Dog)</option>
+                                                <option value="\faCat">Mèo (Cat)</option>
+                                                <option value="\faFutbol">Bóng đá (Football)</option>
+                                                <option value="\faBicycle">Xe đạp (Bicycle)</option>
+                                                <option value="\faBus">Buýt (Bus)</option>
+                                                <option value="\faPlane">Máy bay (Plane)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-3"><input type="text" class="form-control form-control-sm" id="pictogram-scale" value="1.5" placeholder="Tỷ lệ"></div>
+                                    <div class="col-3"><input type="text" class="form-control form-control-sm" id="pictogram-spacing" value="1.5" placeholder="Cách"></div>
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-6"><div class="input-group input-group-sm"><span class="input-group-text">Full=</span><input type="text" class="form-control" id="pictogram-fullvalue"></div></div>
+                                    <div class="col-6"><div class="input-group input-group-sm"><span class="input-group-text">Half=</span><input type="text" class="form-control" id="pictogram-halfvalue"></div></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card flex-grow-1">
+                            <div class="card-header"><i class="fas fa-database"></i> Dữ liệu</div>
+                            <div class="card-body compact-body d-flex flex-column">
+                                <div style="flex:1; overflow-y:auto;">
+                                    <table class="table" id="pictogram-table">
+                                        <thead><tr><th>Mục</th><th>Giá trị</th><th width="30"></th></tr></thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                                <button class="btn btn-sm btn-success w-100 mt-2" onclick="addRow('pictogram')"><i class="fas fa-plus"></i> Thêm dòng</button>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-primary flex-grow-1" onclick="generatePictogram()">Tạo Code</button>
+                            <button class="btn btn-outline-secondary" onclick="copyCode('pictogram-output')">Copy</button>
+                        </div>
+                    </div>
+                    <div class="col-md-7"><textarea class="form-control h-100" id="pictogram-output"></textarea></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="geo-app" class="app-view">
+        <div id="geo-toolbar">
+            <div class="geo-tool-group">
+                <h4><i class="fas fa-dot-circle me-1"></i> Điểm cơ bản</h4>
+                <div class="tool-grid">
+                    <button id="tool-point" class="active"><i class="fas fa-circle" style="font-size:8px"></i>Điểm mới</button>
+                    <button id="tool-midpoint"><i class="fas fa-adjust"></i>Trung điểm</button>
+                    <button id="tool-centroid"><i class="fas fa-bullseye"></i>Trọng tâm</button>
+                    <button id="tool-circumcenter"><i class="far fa-circle"></i>Ngoại tiếp</button>
+                    <button id="tool-incenter"><i class="fas fa-bullseye" style="font-size:10px"></i>Nội tiếp</button>
+                    <button id="tool-orthocenter"><i class="fas fa-crosshairs"></i>Trực tâm</button>
+                    <button id="tool-point-on-circle"><i class="far fa-dot-circle"></i>Điểm trên đường tròn</button>
+                </div>
+            </div>
+
+            <div class="geo-tool-group">
+                <h4><i class="fas fa-pen-nib me-1"></i> Vẽ hình</h4>
+                <div class="tool-grid">
+                    <button id="tool-segment"><i class="fas fa-minus"></i>Đoạn thẳng</button>
+                    <button id="tool-line"><i class="fas fa-arrows-alt-h"></i>Đường thẳng</button>
+                    <button id="tool-circle"><i class="far fa-circle"></i>Đ.Tròn (2 điểm)</button>
+                    <button id="tool-circle-radius"><i class="fas fa-bullseye"></i>Đ.Tròn (R)</button>
+                    <button id="tool-polygon"><i class="fas fa-draw-polygon"></i>Đa giác</button>
+                    <button id="tool-arc"><i class="fas fa-wifi" style="transform: rotate(90deg)"></i>Cung tròn</button>
+                </div>
+            </div>
+
+            <div class="geo-tool-group">
+                <h4><i class="fas fa-project-diagram me-1"></i> Quan hệ</h4>
+                <div class="tool-grid">
+                    <button id="tool-perp-bisector"><i class="fas fa-grip-lines-vertical"></i>Trung trực</button>
+                    <button id="tool-median"><i class="fas fa-slash"></i>Trung tuyến</button>
+                    <button id="tool-altitude"><i class="fas fa-ruler-vertical"></i>Đường cao</button>
+                    <button id="tool-angle-bisector"><i class="fas fa-chevron-right"></i>Phân giác</button>
+                    <button id="tool-perpendicular"><i class="fas fa-l"></i>Vuông góc</button>
+                    <button id="tool-parallel"><i class="fas fa-equals"></i>Song song</button>
+                    <button id="tool-intersection-ll"><i class="fas fa-times"></i>Giao 2 đường</button>
+                    <button id="tool-projection"><i class="fas fa-level-down-alt"></i>Hình chiếu</button>
+                </div>
+            </div>
+
+            <div class="geo-tool-group">
+                <h4><i class="fas fa-magic me-1"></i> Biến hình & Khác</h4>
+                <div class="tool-grid">
+                    <button id="tool-tangent"><i class="fas fa-external-link-alt"></i>Tiếp tuyến</button>
+                    <button id="tool-inter-cc"><i class="fas fa-link"></i>Giao 2 Đ.Tròn</button>
+                    <button id="tool-sym-point"><i class="fas fa-sync-alt"></i>Đối xứng tâm</button>
+                    <button id="tool-sym-line"><i class="fas fa-arrows-alt-h"></i>Đối xứng trục</button>
+                    <button id="tool-translation"><i class="fas fa-arrow-right"></i>Tịnh tiến</button>
+                </div>
+            </div>
+
+            <div class="geo-tool-group">
+                <h4><i class="fas fa-paint-brush me-1"></i> Trang trí & Edit</h4>
+                <div class="tool-grid">
+                    <button id="tool-fill-polygon"><i class="fas fa-fill"></i>Tô đa giác</button>
+                    <button id="tool-mark-angle"><i class="fas fa-angle-up"></i>Ký hiệu Góc</button>
+                    <button id="tool-mark-right"><i class="far fa-square"></i>Góc vuông</button>
+                    <button id="tool-mark-segment"><i class="fas fa-slash"></i>Ký hiệu Đoạn</button>
+                    <button id="tool-label"><i class="fas fa-font"></i>Đổi tên điểm</button>
+                    <button id="tool-move" style="color:var(--primary)"><i class="fas fa-hand-paper"></i>Di chuyển</button>
+                    <button id="tool-delete" style="color:#ef4444"><i class="fas fa-trash"></i>Xóa đối tượng</button>
+                </div>
+            </div>
+            
+            <div class="p-3">
+                <button class="btn btn-sm btn-outline-secondary w-100 mb-2" id="toggle-grid">🔲 Lưới</button>
+                <button class="btn btn-sm btn-outline-secondary w-100 mb-2" id="toggle-snap">🧲 Snap</button>
+                <button class="btn btn-sm btn-outline-secondary w-100 mb-2" id="toggle-axes">📏 Trục</button>
+                <button class="btn btn-sm btn-danger w-100" id="clear">🗑️ Xóa hết</button>
+            </div>
+        </div>
+
+        <div id="geo-main-area">
+            <div id="geo-controls">
+                <button class="btn btn-sm btn-outline-primary fw-bold" id="btn-fullscreen" title="Mở rộng vùng vẽ">
+                    <i class="fas fa-expand me-1"></i> Mở rộng
+                </button>
+                <div style="width: 1px; height: 20px; background: var(--border); margin: 0 5px;"></div>
+                
+                <div class="ctrl-group">
+                    <span class="fw-bold text-secondary">Nét:</span>
+                    <input type="color" id="color" value="#1f2937">
+                    <input type="number" class="form-control form-control-sm" id="thickness" value="2" min="1" max="8" style="width:50px">
+                    <select id="line-style" class="form-select form-select-sm" style="width:auto">
+                        <option value="solid">Liền</option>
+                        <option value="dashed">Đứt</option>
+                        <option value="dotted">Chấm</option>
+                    </select>
+                </div>
+                <div class="ctrl-group">
+                    <span class="fw-bold text-secondary">Tô:</span>
+                    <input type="color" id="fill-color" value="#93c5fd">
+                    <input type="range" id="opacity" min="0" max="100" value="30" style="width:70px" title="Độ mờ">
+                </div>
+                <div class="ctrl-group">
+                    <span class="fw-bold text-secondary">Mark:</span>
+                    <select id="mark-style" class="form-select form-select-sm" style="width:auto" title="Kiểu đánh dấu">
+                        <option value="|">|</option>
+                        <option value="||">||</option>
+                        <option value="|||">|||</option>
+                        <option value="z">z</option>
+                        <option value="s">s</option>
+                        <option value="x">x</option>
+                        <option value="o">o</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div id="geo-canvas-container">
+                <canvas id="geo-canvas"></canvas>
+            </div>
+        </div>
+
+        <div id="geo-code-panel">
+            <div id="geo-code-header">
+                <span><i class="fas fa-code me-2 text-primary"></i>MÃ TKZ-EUCLIDE</span>
+                <span class="badge bg-secondary" style="font-size:10px">ReadOnly</span>
+            </div>
+            <textarea id="geo-code" readonly spellcheck="false"></textarea>
+            <div id="geo-code-footer">Copy mã này dán vào Overleaf hoặc TeX editor</div>
+        </div>
+    </div>
+</div>
+
+<div class="geo-status" id="geo-status">Thông báo</div>
+<div id="geo-modal">
+    <div class="geo-modal-box">
+        <h5 id="geo-modal-title" style="color:var(--primary); margin-bottom:15px; font-weight:700;">Nhập dữ liệu</h5>
+        <input type="text" class="form-control mb-4" id="geo-modal-input" placeholder="Giá trị..." style="border: 1px solid var(--primary); padding:10px;">
+        <div class="d-flex justify-content-end gap-2">
+            <button class="btn btn-sm btn-secondary" id="geo-modal-cancel">Hủy</button>
+            <button class="btn btn-sm btn-primary" id="geo-modal-ok">Đồng ý</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // --- APP SWITCHING LOGIC ---
+    function switchApp(app) {
+        document.querySelectorAll('.app-view').forEach(e => e.classList.remove('active'));
+        document.querySelectorAll('.menu-item').forEach(e => e.classList.remove('active'));
+        
+        if (app === 'chart') {
+            document.getElementById('chart-app').classList.add('active');
+            document.getElementById('btn-chart').classList.add('active');
+            document.getElementById('page-title').innerText = 'Biểu đồ LaTeX';
+            document.getElementById('geo-header-actions').style.display = 'none';
+        } else {
+            document.getElementById('geo-app').classList.add('active');
+            document.getElementById('btn-geo').classList.add('active');
+            document.getElementById('page-title').innerText = 'Hình học tkz-euclide';
+            document.getElementById('geo-header-actions').style.display = 'flex';
+            if (window.geo_resize) window.geo_resize();
+        }
+    }
+    
+    window.addEventListener('resize', () => {
+        if (document.getElementById('geo-app').classList.contains('active') && window.geo_resize) {
+            window.geo_resize();
+        }
+    });
+
+    // --- FULLSCREEN TOGGLE LOGIC ---
+    const btnFullscreen = document.getElementById('btn-fullscreen');
+    if(btnFullscreen) {
+        btnFullscreen.addEventListener('click', function() {
+            document.body.classList.toggle('fullscreen-mode');
+            const isFull = document.body.classList.contains('fullscreen-mode');
+            this.innerHTML = isFull ? '<i class="fas fa-compress me-1"></i> Thu nhỏ' : '<i class="fas fa-expand me-1"></i> Mở rộng';
+            this.className = isFull ? 'btn btn-sm btn-primary fw-bold' : 'btn btn-sm btn-outline-primary fw-bold';
+            setTimeout(() => {
+                if (window.geo_resize) window.geo_resize();
+            }, 100);
+        });
+    }
+</script>
+
+<script>
+    // --- CHART LOGIC (GIỮ NGUYÊN) ---
+    const PATTERNS = ["", "grid", "dots", "bricks", "crosshatch", "north east lines", "north west lines", "vertical lines", "horizontal lines", "checkerboard", "fivepointed stars", "sixpointed stars"];
+
+    window.onload = function() {
+        addRow('pie'); addRow('bar'); addRow('doublebar'); addRow('line'); addRow('line'); addRow('pictogram');
+    };
+
+    function addRow(type) {
+        const table = document.getElementById(type + '-table').querySelector('tbody');
+        const row = document.createElement('tr');
+        if (type === 'pie') {
+            row.innerHTML = `<td><input type="text" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm" onkeyup="updatePieSum()"></td><td><select class="form-select form-select-sm">${PATTERNS.map(p => `<option>${p}</option>`).join('')}</select></td><td><button class="btn btn-danger btn-sm" onclick="deleteRow(this, 'pie')"><i class="fas fa-trash"></i></button></td>`;
+        } else if (type === 'bar' || type === 'line' || type === 'pictogram') {
+            row.innerHTML = `<td><input type="text" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td><td><button class="btn btn-danger btn-sm" onclick="deleteRow(this, '${type}')"><i class="fas fa-trash"></i></button></td>`;
+        } else if (type === 'doublebar') {
+            row.innerHTML = `<td><input type="text" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td><td><button class="btn btn-danger btn-sm" onclick="deleteRow(this, 'doublebar')"><i class="fas fa-trash"></i></button></td>`;
+        }
+        table.appendChild(row);
+        if (type === 'pie') updatePieSum();
+    }
+
+    function deleteRow(btn, type) {
+        const table = document.getElementById(type + '-table').querySelector('tbody');
+        if (table.rows.length <= 1) { alert('Phải có ít nhất một dòng!'); return; }
+        if (type === 'line' && table.rows.length <= 2) { alert('Biểu đồ đường cần ít nhất hai điểm!'); return; }
+        btn.parentElement.parentElement.remove();
+        if (type === 'pie') updatePieSum();
+    }
+
+    function updatePieSum() {
+        const table = document.getElementById('pie-table').querySelector('tbody');
+        let total = 0;
+        Array.from(table.rows).forEach(row => { total += parseFloat(row.cells[1].querySelector('input').value) || 0; });
+        document.getElementById('pie-sum').textContent = `Tổng: ${total.toFixed(1)}%`;
+    }
+
+    function generatePie() {
+        const title = document.getElementById('pie-title').value.trim();
+        const table = document.getElementById('pie-table').querySelector('tbody');
+        const data = [];
+        Array.from(table.rows).forEach(row => {
+            const nd = row.cells[0].querySelector('input').value.trim();
+            const pt = parseFloat(row.cells[1].querySelector('input').value);
+            const kh = row.cells[2].querySelector('select').value;
+            if (nd && !isNaN(pt) && kh) data.push({nd, pt, kh});
+        });
+        if (data.length === 0) { alert('Vui lòng nhập dữ liệu hợp lệ'); return; }
+        let code = ['\\begin{tikzpicture}', '\\def\\r{3}', '\\def\\gocxp{90}', '\\coordinate (A) at (90:\\r);'];
+        if (title) code.push(`\\node at (0, \\r+0.75) [align=center, text width=10cm] {\\textbf{${title}}};`);
+        code.push('\\foreach \\nd/\\pt/\\kh[count=\\i from 0] in{');
+        code.push(data.map(d => `${d.nd}/${d.pt}/${d.kh}`).join(',\n') + '}');
+        code.push('{\\pgfmathsetmacro\\gockt{-(\\pt*3.6-\\gocxp)}');
+        code.push('\\pgfmathsetmacro\\gocnode{\\gocxp+\\gockt}');
+        code.push('\\draw[gray,pattern=\\kh] (0,0)--(A) arc(\\gocxp:\\gockt:\\r) coordinate(A)--cycle;');
+        code.push('\\filldraw[pattern=\\kh] (\\r+1,\\r-1.5*\\i-0.75) --++(0:.75)--++(-90:.5) node[pos=.5,right,black]{\\nd}--++(180:.75)--cycle;');
+        code.push('\\path ($ (0,0)+(\\gocnode/2:2)$) node[fill=white,inner sep=0pt]{\\color{black} $\\pt\\%$};');
+        code.push('\\global\\let\\gocxp=\\gockt}');
+        code.push('\\end{tikzpicture}');
+        document.getElementById('pie-output').value = code.join('\n');
+    }
+
+    function generateBar() {
+        const title = document.getElementById('bar-title').value.trim();
+        const xlabel = document.getElementById('bar-xlabel').value.trim() || '';
+        const ylabel = document.getElementById('bar-ylabel').value.trim() || '';
+        const oyfactor = parseInt(document.getElementById('bar-oyfactor').value) || 10;
+        const color = document.getElementById('bar-color').value.trim() || 'blue!60';
+        const table = document.getElementById('bar-table').querySelector('tbody');
+        const data = [];
+        Array.from(table.rows).forEach(row => {
+            const nd = row.cells[0].querySelector('input').value.trim();
+            const gt = parseFloat(row.cells[1].querySelector('input').value);
+            if (nd && !isNaN(gt)) data.push({nd, gt});
+        });
+        if (data.length === 0 || oyfactor === 0) { alert('Dữ liệu hoặc hệ số không hợp lệ'); return; }
+        const processed = data.map(d => ({name: d.nd, height: d.gt / oyfactor, value: d.gt}));
+        const maxHeight = Math.max(...processed.map(p => p.height));
+        const maxAxis = Math.floor(maxHeight) + 1;
+        const yHeight = maxAxis + 1;
+        const lastX = 2 * data.length - 1;
+        const width = lastX + 2;
+        const titleX = (1 + lastX) / 2;
+        let code = ['\\begin{tikzpicture}[font=\\footnotesize, yscale=0.75]', `  \\draw[->] (0,0)--(${width},0) node[below]{${xlabel}};`, `  \\draw[->] (0,0) node [left] {0} -- (0,${yHeight}) node[left]{${ylabel}};`, `  \\foreach \\y in {1,...,${maxAxis}}{\\draw[gray!30] (${width},\\y) -- (0,\\y) node [left,black] {\\the\\numexpr ${oyfactor}*\\y};}`];
+        code.push('  \\foreach \\x/\\t/\\y/\\z in {');
+        code.push(processed.map((p, i) => `    ${2*(i+1)-1}/${p.name}/${p.height}/${p.value}`).join(',\n'));
+        code.push('}{');
+        code.push('    \\node at (\\x,0) [below] {\\t};');
+        code.push(`    \\filldraw [fill=${color}] (\\x-0.5,0) rectangle (\\x+0.5,\\y);`);
+        code.push('    \\node at (\\x,\\y) [above] {\\pgfmathprintnumber[1000 sep={},dec sep={,}]{\\z}};');
+        code.push('  }');
+        if (title) code.push(`  \\node at (${titleX}, ${yHeight+1}) [align=center, text width=10cm] {\\textbf{${title}}};`);
+        code.push('\\end{tikzpicture}');
+        document.getElementById('bar-output').value = code.join('\n');
+    }
+
+    function generateDoubleBar() {
+        const title = document.getElementById('doublebar-title').value.trim();
+        const xlabel = document.getElementById('doublebar-xlabel').value.trim() || 'Đối tượng';
+        const ylabel = document.getElementById('doublebar-ylabel').value.trim() || 'Giá trị';
+        const oyfactor = parseInt(document.getElementById('doublebar-oyfactor').value) || 10;
+        const g1name = document.getElementById('doublebar-g1name').value.trim() || 'Nhóm 1';
+        const g2name = document.getElementById('doublebar-g2name').value.trim() || 'Nhóm 2';
+        const pat1 = document.getElementById('doublebar-pattern1').value;
+        const pat2 = document.getElementById('doublebar-pattern2').value;
+        const table = document.getElementById('doublebar-table').querySelector('tbody');
+        const data = [];
+        Array.from(table.rows).forEach(row => {
+            const nd = row.cells[0].querySelector('input').value.trim();
+            const v1 = parseFloat(row.cells[1].querySelector('input').value);
+            const v2 = parseFloat(row.cells[2].querySelector('input').value);
+            if (nd && !isNaN(v1) && !isNaN(v2)) data.push({nd, v1, v2});
+        });
+        if (data.length === 0 || oyfactor === 0) { alert('Dữ liệu hoặc hệ số không hợp lệ'); return; }
+        const pat1Str = pat1 ? `pattern=${pat1}` : 'draw'; const pat2Str = pat2 ? `pattern=${pat2}` : 'draw';
+        const processed = data.map(d => ({name: d.nd, h1: d.v1 / oyfactor, val1: d.v1, h2: d.v2 / oyfactor, val2: d.v2}));
+        const maxHeight = Math.max(...processed.map(p => Math.max(p.h1, p.h2)));
+        const maxAxis = Math.floor(maxHeight) + 1;
+        const yHeight = maxAxis + 1;
+        const lastX = 2 * data.length - 1;
+        const width = lastX + 2;
+        const titleX = (1 + lastX) / 2;
+        let code = ['\\begin{tikzpicture}[font=\\footnotesize, yscale=0.75, xscale=1.2]', `  \\draw[->] (0,0)--(${width},0) node[below]{{${xlabel}};`, `  \\draw[->] (0,0)--(0,${yHeight}) node[left]{${ylabel}}}};`, `  \\foreach \\y in {0,1,...,${maxAxis}}{\\draw (0.1,\\y) -- (-0.1,\\y) node [left] {\\the\\numexpr ${oyfactor}*\\y};}`];
+        code.push('  % Biểu đồ cột kép');
+        code.push('  \\foreach \\x/\\t/\\y/\\z/\\u/\\v in {');
+        code.push(processed.map((p, i) => `    ${2*(i+1)-1}/${p.name}/${p.h1}/${p.val1}/${p.h2}/${p.val2}`).join(',\n'));
+        code.push('}{');
+        code.push('    \\node at (\\x,0) [below] {\\t};');
+        code.push(`    \\draw [${pat1Str}] (\\x-0.6,0) rectangle (\\x-0.05,\\y);`);
+        code.push('    \\node at (\\x-0.35,\\y) [above] {\\pgfmathprintnumber[1000 sep={},dec sep={,}]{\\z}};');
+        code.push(`    \\draw [${pat2Str}] (\\x+0.05,0) rectangle (\\x+0.6,\\u);`);
+        code.push('    \\node at (\\x+0.35,\\u) [above] {\\pgfmathprintnumber[1000 sep={},dec sep={,}]{\\v}};');
+        code.push('  }');
+        if (title) code.push(`  \\node at (${titleX}, ${yHeight+1}) [align=center, text width=10cm] {\\textbf{${title}}};`);
+        code.push(`  \\matrix[right] at (${width+1},${yHeight/2}) [column sep=5pt, row sep=4pt] { \\node[draw,${pat1Str},minimum width=12pt,minimum height=12pt] {}; & \\node {${g1name}}; \\\\ \\node[draw,${pat2Str},minimum width=12pt,minimum height=12pt] {}; & \\node {${g2name}}; \\\\ };`);
+        code.push('\\end{tikzpicture}');
+        document.getElementById('doublebar-output').value = code.join('\n');
+    }
+
+    function generateLine() {
+        const title = document.getElementById('line-title').value.trim();
+        const xlabel = document.getElementById('line-xlabel').value.trim() || '';
+        const ylabel = document.getElementById('line-ylabel').value.trim() || '';
+        const oyfactor = parseInt(document.getElementById('line-oyfactor').value) || 10;
+        const linecolor = document.getElementById('line-linecolor').value.trim() || '';
+        const pointcolor = document.getElementById('line-pointcolor').value.trim() || '';
+        const linewidth = document.getElementById('line-linewidth').value.trim() || '1.5pt';
+        const table = document.getElementById('line-table').querySelector('tbody');
+        const data = [];
+        Array.from(table.rows).forEach(row => {
+            const nd = row.cells[0].querySelector('input').value.trim();
+            const gt = parseFloat(row.cells[1].querySelector('input').value);
+            if (nd && !isNaN(gt)) data.push({nd, gt});
+        });
+        if (data.length < 2 || oyfactor === 0) { alert('Dữ liệu hoặc hệ số không hợp lệ. Cần ít nhất 2 điểm.'); return; }
+        const processed = data.map((d, i) => ({x: 2*(i+1), name: d.nd, y: d.gt / oyfactor, value: d.gt}));
+        const maxY = Math.max(...processed.map(p => p.y));
+        const maxAxis = Math.floor(maxY) + 2;
+        const yHeight = maxAxis + 1;
+        const lastX = processed[processed.length - 1].x;
+        const width = lastX + 2;
+        const titleX = width / 2;
+        let code = ['\\begin{tikzpicture}[font=\\footnotesize, yscale=0.8]', `  \\draw[->] (0,0)--(${width},0) node[below]{${xlabel}};`, `  \\draw[->] (0,0)--(0,${yHeight}) node[left]{${ylabel}};`, `  \\foreach \\y in {0,1,...,${maxAxis}}{\\draw (0.1,\\y) -- (-0.1,\\y) node [left] {\\the\\numexpr ${oyfactor}*\\y};}`];
+        code.push('  \\foreach \\x/\\t/\\y/\\z in {');
+        code.push(processed.map(p => `    ${p.x}/${p.name}/${p.y}/${p.value}`).join(',\n'));
+        code.push('}{');
+        code.push('    \\draw [dashed, gray!50] (\\x,\\y) -- (\\x,0) node [below,black] {\\t};');
+        code.push('    \\pgfmathsetmacro\\kq{\\z}');
+        code.push(`    \\filldraw [${pointcolor}] (\\x,\\y) circle (2.5pt);`);
+        code.push('    \\pgfmathsetmacro\\yoffset{(\\y < 3) ? -0.4 : 0.4}');
+        code.push('    \\node at (\\x,\\y+\\yoffset) {\\pgfmathprintnumber[1000 sep={},dec sep={,}]{\\kq}};');
+        code.push('  }');
+        const lineSegments = [];
+        for (let i = 1; i < processed.length; i++) { lineSegments.push(`(${processed[i-1].x},${processed[i-1].y}) -- (${processed[i].x},${processed[i].y})`); }
+        if (lineSegments.length) { code.push(`  \\draw [${linecolor}, line width=${linewidth}] ${lineSegments.join(' -- ')};`); }
+        if (title) code.push(`  \\node at (${titleX}, ${yHeight+0.8}) [align=center, text width=10cm] {\\textbf{${title}}};`);
+        code.push('\\end{tikzpicture}');
+        document.getElementById('line-output').value = code.join('\n');
+    }
+
+    function generatePictogram() {
+        const title = document.getElementById('pictogram-title').value.trim();
+        const icon = document.getElementById('pictogram-icon').value;
+        const scale = parseFloat(document.getElementById('pictogram-scale').value) || 1.5;
+        const spacing = parseFloat(document.getElementById('pictogram-spacing').value) || 1.5;
+        const fullVal = document.getElementById('pictogram-fullvalue').value || '1';
+        const halfVal = document.getElementById('pictogram-halfvalue').value || '0.5';
+        const table = document.getElementById('pictogram-table').querySelector('tbody');
+        const data = [];
+        Array.from(table.rows).forEach(row => {
+            const name = row.cells[0].querySelector('input').value.trim();
+            const value = parseFloat(row.cells[1].querySelector('input').value);
+            if (name && !isNaN(value)) data.push({name, value});
+        });
+        if (data.length === 0) { alert('Vui lòng nhập dữ liệu hợp lệ'); return; }
+        const numRows = data.length; const rowHeight = 1.8; const colWidth = 4; const totalHeight = numRows * rowHeight;
+        const maxValue = Math.max(...data.map(d => d.value)); const maxIcons = Math.floor(maxValue) + (maxValue % 1 >= 0.5 ? 1 : 0);
+        const totalWidth = colWidth + maxIcons * spacing + 2;
+        let code = ['\\begin{tikzpicture}'];
+        if (title) code.push(`\\node at (${totalWidth/2},${totalHeight+1}) {\\Large\\textbf{${title}}};`);
+        code.push(`\\draw (0,0) rectangle (${totalWidth},${totalHeight});`);
+        code.push(`\\draw (${colWidth},0) -- (${colWidth},${totalHeight});`);
+        if (numRows > 1) { for (let i = 1; i < numRows; i++) { code.push(`\\draw (0,${i*rowHeight}) -- (${totalWidth},${i*rowHeight});`); } }
+        code.push('% Data');
+        code.push('\\foreach \\name/\\s/\\y in {');
+        code.push(data.map((d, i) => `${d.name.replace(/ /g, '~')}/${d.value}/${totalHeight - (i + 0.5) * rowHeight}`).join(','));
+        code.push('} {');
+        code.push('  \\node at (2,\\y) {\\name};');
+        code.push('  \\pgfmathtruncatemacro{\\full}{floor(\\s)}');
+        code.push('  \\pgfmathsetmacro{\\hasHalf}{mod(\\s,1) >= 0.5 ? 1 : 0}');
+        code.push('  \\foreach \\i in {1,...,\\full} {');
+        code.push(`    \\pgfmathsetmacro{\\xx}{${colWidth}+${spacing}*\\i}`);
+        code.push(`    \\node[scale=${scale}] at (\\xx,\\y) {${icon}};`);
+        code.push('  }');
+        code.push('  \\pgfmathparse{int(\\hasHalf)}');
+        code.push('  \\ifnum\\pgfmathresult=1');
+        code.push(`    \\pgfmathsetmacro{\\xx}{${colWidth}+${spacing}*(\\full+1)}`);
+        code.push('    \\begin{scope}');
+        code.push(`      \\clip (\\xx-${spacing*0.3},\\y-0.6) rectangle (\\xx,\\y+0.6);`);
+        code.push(`      \\node[scale=${scale}] at (\\xx,\\y) {${icon}};`);
+        code.push('    \\end{scope}');
+        code.push('  \\fi');
+        code.push('}');
+        code.push('% Legend');
+        code.push(`\\node[scale=${scale}] at (${totalWidth/2-2},-1.5) {${icon}};`);
+        code.push(`\\node at (${totalWidth/2-1},-1.5) {= ${fullVal}};`);
+        code.push('\\begin{scope}');
+        code.push(`  \\clip (${totalWidth/2+0.7},-2.1) rectangle (${totalWidth/2+1},-0.9);`);
+        code.push(`  \\node[scale=${scale}] at (${totalWidth/2+1},-1.5) {${icon}};`);
+        code.push('\\end{scope}');
+        code.push(`\\node at (${totalWidth/2+2},-1.5) {= ${halfVal}};`);
+        code.push('\\end{tikzpicture}');
+        document.getElementById('pictogram-output').value = code.join('\n');
+    }
+    function copyCode(id) { const t=document.getElementById(id); t.select(); document.execCommand('copy'); alert('Đã sao chép!'); }
+</script>
+
+<script>
+// --- GEOMETRY APP (Extended Pro Version) ---
+(function(){
+    const canvas = document.getElementById('geo-canvas');
+    const ctx = canvas.getContext('2d');
+    const codeEl = document.getElementById('geo-code');
+    const statusEl = document.getElementById('geo-status');
+    
+    const BASE_SCALE = 50; // Độ phân giải cơ bản
+    const SNAP = 12;
+    
+    // Biến zoom và di chuyển
+    let scale = 1.0;
+    let offsetX = 0;
+    let offsetY = 0;
+    let isPanning = false;
+    let lastMousePos = { x: 0, y: 0 };
+    let W = canvas.width;
+    let H = canvas.height;
+    
+    // Mouse state
+    let mousePos = { x: 0, y: 0 };
+
+    window.geo_resize = function() {
+        const container = document.getElementById('geo-canvas-container');
+        if(container && container.clientWidth > 0) {
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            W = canvas.width;
+            H = canvas.height;
+            draw();
+        }
+    }
+
+    let tool = 'point';
+    let temp = [];
+    let moving = null;
+    let showGrid = true;
+    let snapToGrid = true;
+    let showAxes = true;
+
+    // --- MAIN STATE STORE ---
+    let state = {
+        points: [], segments: [], lines: [], circles: [], circleRadii: [], arcs: [], polygons: [], labels: [],
+        midpoints: [], centroids: [], circumcenters: [], incenters: [], orthocenters: [], 
+        intersections: [], intersectionsCC: [], projections: [],
+        perpBisectors: [], medians: [], altitudes: [], angleBisectors: [], perpendiculars: [], parallels: [],
+        tangents: [], symPoints: [], symLines: [], translations: [],
+        fills: [], fillCircles: [], clips: [], markAngles: [], markRights: [], markSegments: [], labelSegments: [], labelAngles: []
+    };
+
+    let history = [JSON.parse(JSON.stringify(state))];
+    let historyIndex = 0;
+
+    // Chuyển đổi tọa độ canvas sang tọa độ thế giới
+    function toWorld(x, y) {
+        return {
+            x: (x - offsetX - W/2) / (BASE_SCALE * scale),
+            y: -(y - offsetY - H/2) / (BASE_SCALE * scale)
+        };
+    }
+
+    // Chuyển đổi tọa độ thế giới sang canvas
+    function toCanvas(x, y) {
+        return {
+            x: x * (BASE_SCALE * scale) + offsetX + W/2,
+            y: -y * (BASE_SCALE * scale) + offsetY + H/2
+        };
+    }
+
+    function getPointerPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        let clientX = e.clientX;
+        let clientY = e.clientY;
+        if (e.touches && e.touches.length > 0) { clientX = e.touches[0].clientX; clientY = e.touches[0].clientY; } 
+        else if (e.changedTouches && e.changedTouches.length > 0) { clientX = e.changedTouches[0].clientX; clientY = e.changedTouches[0].clientY; }
+        return { x: clientX - rect.left, y: clientY - rect.top };
+    }
+
+    function showStatus(msg) {
+        statusEl.textContent = msg;
+        statusEl.style.display = 'block';
+        setTimeout(() => statusEl.style.display = 'none', 2500);
+    }
+
+    function save() {
+        historyIndex++;
+        history = history.slice(0, historyIndex);
+        history.push(JSON.parse(JSON.stringify(state)));
+        document.getElementById('geo-undo').disabled = false;
+        document.getElementById('geo-redo').disabled = true;
+    }
+
+    function findPoint(x, y) {
+        const worldPos = toWorld(x, y);
+        for (let p of state.points) {
+            const canvasPos = toCanvas(p.x, p.y);
+            if (Math.hypot(canvasPos.x - x, canvasPos.y - y) < SNAP/scale) return p;
+        }
+        return null;
+    }
+
+    function snapPoint(x, y) {
+        if (!snapToGrid) return toWorld(x, y);
+        
+        const worldPos = toWorld(x, y);
+        return {
+            x: Math.round(worldPos.x * 2) / 2,
+            y: Math.round(worldPos.y * 2) / 2
+        };
+    }
+
+    function newName() {
+        let idx = state.points.length;
+        let name = String.fromCharCode(65 + (idx % 26));
+        if (idx >= 26) name += Math.floor(idx / 26);
+        while (state.points.find(p => p.name === name)) {
+            idx++;
+            name = String.fromCharCode(65 + (idx % 26));
+            if (idx >= 26) name += Math.floor(idx / 26);
+        }
+        return name;
+    }
+
+    function toTikZ(x, y) {
+        return `(${x.toFixed(2)},${y.toFixed(2)})`;
+    }
+
+    // --- MATH HELPERS ---
+    function calcMid(p1, p2) { return { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 }; }
+    function calcCentroid(p1, p2, p3) { return { x: (p1.x + p2.x + p3.x) / 3, y: (p1.y + p2.y + p3.y) / 3 }; }
+    function calcCircumcenter(p1, p2, p3) {
+        const d = 2 * (p1.x * (p2.y - p3.y) + p2.x * (p3.y - p1.y) + p3.x * (p1.y - p2.y));
+        if (Math.abs(d) < 1e-6) return null;
+        const ux = ((p1.x * p1.x + p1.y * p1.y) * (p2.y - p3.y) + (p2.x * p2.x + p2.y * p2.y) * (p3.y - p1.y) + (p3.x * p3.x + p3.y * p3.y) * (p1.y - p2.y)) / d;
+        const uy = ((p1.x * p1.x + p1.y * p1.y) * (p3.x - p2.x) + (p2.x * p2.x + p2.y * p2.y) * (p1.x - p3.x) + (p3.x * p3.x + p3.y * p3.y) * (p2.x - p1.x)) / d;
+        return { x: ux, y: uy };
+    }
+    function calcIncenter(p1, p2, p3) {
+        const a = Math.hypot(p2.x - p3.x, p2.y - p3.y);
+        const b = Math.hypot(p1.x - p3.x, p1.y - p3.y);
+        const c = Math.hypot(p1.x - p2.x, p1.y - p2.y);
+        const p = a + b + c;
+        return { x: (a * p1.x + b * p2.x + c * p3.x) / p, y: (a * p1.y + b * p2.y + c * p3.y) / p };
+    }
+    function calcOrthocenter(p1, p2, p3) {
+        const dx1 = p2.x - p3.x, dy1 = p2.y - p3.y;
+        const dx2 = p1.x - p3.x, dy2 = p1.y - p3.y;
+        if (Math.abs(dy1) < 1e-6) return { x: p1.x, y: p3.y };
+        if (Math.abs(dy2) < 1e-6) return { x: p2.x, y: p3.y };
+        const s1 = -dx1 / dy1, s2 = -dx2 / dy2;
+        const c1 = p1.y - s1 * p1.x, c2 = p2.y - s2 * p2.x;
+        if (Math.abs(s1 - s2) < 1e-6) return null;
+        const x = (c2 - c1) / (s1 - s2);
+        const y = s1 * x + c1;
+        return { x, y };
+    }
+    function calcProjection(point, lineP1, lineP2) {
+        const dx = lineP2.x - lineP1.x, dy = lineP2.y - lineP1.y;
+        const lenSq = dx * dx + dy * dy;
+        if (lenSq < 1e-6) return lineP1;
+        const param = ((point.x - lineP1.x) * dx + (point.y - lineP1.y) * dy) / lenSq;
+        return { x: lineP1.x + param * dx, y: lineP1.y + param * dy };
+    }
+    function calcIntersectionLines(l1p1, l1p2, l2p1, l2p2) {
+        const d1x = l1p2.x - l1p1.x, d1y = l1p2.y - l1p1.y;
+        const d2x = l2p2.x - l2p1.x, d2y = l2p2.y - l2p1.y;
+        const det = d1x * d2y - d1y * d2x;
+        if (Math.abs(det) < 1e-6) return null;
+        const t = ((l2p1.x - l1p1.x) * d2y - (l2p1.y - l1p1.y) * d2x) / det;
+        return { x: l1p1.x + t * d1x, y: l1p1.y + t * d1y };
+    }
+    function calcIntersectionCircleLine(center, radius, lineP1, lineP2) {
+        const dx = lineP2.x - lineP1.x, dy = lineP2.y - lineP1.y;
+        const fx = lineP1.x - center.x, fy = lineP1.y - center.y;
+        const a = dx * dx + dy * dy;
+        const b = 2 * (fx * dx + fy * dy);
+        const c = fx * fx + fy * fy - radius * radius;
+        const disc = b * b - 4 * a * c;
+        if (disc < 0) return [];
+        if (Math.abs(disc) < 1e-6) {
+            const t = -b / (2 * a);
+            return [{ x: lineP1.x + t * dx, y: lineP1.y + t * dy }];
+        }
+        const t1 = (-b + Math.sqrt(disc)) / (2 * a);
+        const t2 = (-b - Math.sqrt(disc)) / (2 * a);
+        return [{ x: lineP1.x + t1 * dx, y: lineP1.y + t1 * dy }, { x: lineP1.x + t2 * dx, y: lineP1.y + t2 * dy }];
+    }
+    
+    function calcIntersectionCC(c1, r1, c2, r2) {
+        const dx = c2.x - c1.x, dy = c2.y - c1.y;
+        const d = Math.hypot(dx, dy);
+        if (d > r1 + r2 || d < Math.abs(r1 - r2) || d === 0) return [];
+        const a = (r1*r1 - r2*r2 + d*d) / (2*d);
+        const h = Math.sqrt(Math.max(0, r1*r1 - a*a));
+        const x2 = c1.x + a * (dx/d);
+        const y2 = c1.y + a * (dy/d);
+        return [
+            { x: x2 + h * (dy/d), y: y2 - h * (dx/d) },
+            { x: x2 - h * (dy/d), y: y2 + h * (dx/d) }
+        ];
+    }
+    
+    // FIXED: Tính tiếp điểm chính xác
+    function calcTangent(pt, center, radius) {
+        const dx = pt.x - center.x;
+        const dy = pt.y - center.y;
+        const d = Math.hypot(dx, dy);
+        if (d <= radius) return []; // Điểm nằm trong hoặc trên đường tròn
+        
+        const alpha = Math.atan2(dy, dx);
+        const beta = Math.acos(radius / d);
+        
+        return [
+            {
+                x: center.x + radius * Math.cos(alpha + beta),
+                y: center.y + radius * Math.sin(alpha + beta)
+            },
+            {
+                x: center.x + radius * Math.cos(alpha - beta),
+                y: center.y + radius * Math.sin(alpha - beta)
+            }
+        ];
+    }
+    
+    // NEW: Điểm trên đường tròn (chỉ cần chọn đường tròn và vị trí)
+    function handlePointOnCircle(pos) {
+        const worldPos = snapPoint(pos.x, pos.y);
+        
+        // Tìm đường tròn gần nhất
+        let nearestCircle = null;
+        let minDist = Infinity;
+        
+        for (let circ of state.circles) {
+            const centerCanvas = toCanvas(circ.p1.x, circ.p1.y);
+            const radius = Math.hypot(circ.p2.x - circ.p1.x, circ.p2.y - circ.p1.y) * (BASE_SCALE * scale);
+            const dist = Math.abs(Math.hypot(pos.x - centerCanvas.x, pos.y - centerCanvas.y) - radius);
+            if (dist < minDist && dist < 20) {
+                minDist = dist;
+                nearestCircle = circ;
+            }
+        }
+        
+        for (let circ of state.circleRadii) {
+            const centerCanvas = toCanvas(circ.center.x, circ.center.y);
+            const radius = circ.radius * (BASE_SCALE * scale);
+            const dist = Math.abs(Math.hypot(pos.x - centerCanvas.x, pos.y - centerCanvas.y) - radius);
+            if (dist < minDist && dist < 20) {
+                minDist = dist;
+                nearestCircle = circ;
+            }
+        }
+        
+        if (nearestCircle) {
+            let center, radius;
+            if (nearestCircle.p1) {
+                center = nearestCircle.p1;
+                radius = Math.hypot(nearestCircle.p2.x - nearestCircle.p1.x, nearestCircle.p2.y - nearestCircle.p1.y);
+            } else {
+                center = nearestCircle.center;
+                radius = nearestCircle.radius / BASE_SCALE; // Chuyển về đơn vị thế giới
+            }
+            
+            // Tính góc từ tâm đến vị trí click
+            const angle = Math.atan2(worldPos.y - center.y, worldPos.x - center.x);
+            
+            // Tạo điểm trên đường tròn
+            const newPoint = {
+                x: center.x + radius * Math.cos(angle),
+                y: center.y + radius * Math.sin(angle),
+                name: newName(),
+                generated: true
+            };
+            
+            state.points.push(newPoint);
+            save();
+            draw();
+            showStatus(`Đã thêm điểm ${newPoint.name} trên đường tròn`);
+        } else {
+            showStatus('Vui lòng click gần một đường tròn');
+        }
+    }
+    
+    function calcSymPoint(center, pt) { return { x: 2*center.x - pt.x, y: 2*center.y - pt.y }; }
+    function calcTranslation(pt, v1, v2) { return { x: pt.x + (v2.x - v1.x), y: pt.y + (v2.y - v1.y) }; }
+
+    function updateDependentPoints() {
+        state.midpoints.forEach(item => { const p = calcMid(item.p1, item.p2); item.result.x = p.x; item.result.y = p.y; });
+        state.centroids.forEach(item => { const p = calcCentroid(item.p1, item.p2, item.p3); item.result.x = p.x; item.result.y = p.y; });
+        state.circumcenters.forEach(item => { const p = calcCircumcenter(item.p1, item.p2, item.p3); if(p){item.result.x = p.x; item.result.y = p.y;} });
+        state.incenters.forEach(item => { const p = calcIncenter(item.p1, item.p2, item.p3); item.result.x = p.x; item.result.y = p.y; });
+        state.orthocenters.forEach(item => { const p = calcOrthocenter(item.p1, item.p2, item.p3); if(p){item.result.x = p.x; item.result.y = p.y;} });
+        state.projections.forEach(item => { const p = calcProjection(item.point, item.lp1, item.lp2); item.result.x = p.x; item.result.y = p.y; });
+        
+        state.intersections.forEach(item => {
+            if (item.type === 'll') { const p = calcIntersectionLines(item.l1p1, item.l1p2, item.l2p1, item.l2p2); if(p){item.result.x = p.x; item.result.y = p.y;} }
+            else if (item.type === 'cl') {
+                const r = Math.hypot(item.pointOnCircle.x - item.center.x, item.pointOnCircle.y - item.center.y);
+                const ps = calcIntersectionCircleLine(item.center, r, item.lp1, item.lp2);
+                if (ps.length > 0 && item.result1) { item.result1.x = ps[0].x; item.result1.y = ps[0].y; }
+                if (ps.length > 1 && item.result2) { item.result2.x = ps[1].x; item.result2.y = ps[1].y; }
+            }
+        });
+        
+        state.intersectionsCC.forEach(item => {
+            const r1 = Math.hypot(item.c1r.x - item.c1.x, item.c1r.y - item.c1.y);
+            const r2 = Math.hypot(item.c2r.x - item.c2.x, item.c2r.y - item.c2.y);
+            const ps = calcIntersectionCC(item.c1, r1, item.c2, r2);
+            if(ps.length > 0 && item.res1) { item.res1.x = ps[0].x; item.res1.y = ps[0].y; }
+            if(ps.length > 1 && item.res2) { item.res2.x = ps[1].x; item.res2.y = ps[1].y; }
+        });
+
+        state.tangents.forEach(item => {
+            const r = Math.hypot(item.cr.x - item.c.x, item.cr.y - item.c.y);
+            const ps = calcTangent(item.pt, item.c, r);
+            if(ps.length > 0) { item.t1.x = ps[0].x; item.t1.y = ps[0].y; }
+            if(ps.length > 1) { item.t2.x = ps[1].x; item.t2.y = ps[1].y; }
+        });
+
+        state.symPoints.forEach(item => { const p = calcSymPoint(item.center, item.pt); item.res.x = p.x; item.res.y = p.y; });
+        state.symLines.forEach(item => { 
+            const proj = calcProjection(item.pt, item.lp1, item.lp2);
+            item.res.x = 2*proj.x - item.pt.x; item.res.y = 2*proj.y - item.pt.y;
+        });
+        state.translations.forEach(item => { const p = calcTranslation(item.pt, item.v1, item.v2); item.res.x = p.x; item.res.y = p.y; });
+        
+        state.perpBisectors.forEach(pb => {
+            const mid = calcMid(pb.p1, pb.p2); const dx = pb.p2.x - pb.p1.x; const dy = pb.p2.y - pb.p1.y;
+            pb.p1_res.x = mid.x - dy; pb.p1_res.y = mid.y + dx; pb.p2_res.x = mid.x + dy; pb.p2_res.y = mid.y - dx;
+        });
+        state.angleBisectors.forEach(ab => {
+            const ang1 = Math.atan2(ab.p1.y - ab.vertex.y, ab.p1.x - ab.vertex.x);
+            const ang2 = Math.atan2(ab.p2.y - ab.vertex.y, ab.p2.x - ab.vertex.x);
+            const bisectAng = (ang1 + ang2) / 2; const r = 100;
+            ab.res.x = ab.vertex.x + r * Math.cos(bisectAng); ab.res.y = ab.vertex.y + r * Math.sin(bisectAng);
+        });
+        state.perpendiculars.forEach(perp => {
+            const dx = perp.lp2.x - perp.lp1.x; const dy = perp.lp2.y - perp.lp1.y;
+            perp.res.x = perp.through.x - dy; perp.res.y = perp.through.y + dx;
+        });
+        state.parallels.forEach(par => {
+            const dx = par.lp2.x - par.lp1.x; const dy = par.lp2.y - par.lp1.y;
+            par.res.x = par.through.x + dx; par.res.y = par.through.y + dy;
+        });
+    }
+
+    function draw() {
+        updateDependentPoints();
+        ctx.clearRect(0, 0, W, H);
+        
+        // Lưới giống GeoGebra
+        if (showGrid) {
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([]);
+            
+            const gridSize = BASE_SCALE * scale;
+            const startX = Math.floor(-offsetX / gridSize) * gridSize;
+            const startY = Math.floor(-offsetY / gridSize) * gridSize;
+            
+            // Lưới mảnh
+            for (let x = startX; x < W; x += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, H);
+                ctx.stroke();
+            }
+            for (let y = startY; y < H; y += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(W, y);
+                ctx.stroke();
+            }
+            
+            // Lưới đậm cách 5 đơn vị
+            ctx.strokeStyle = '#c0c0c0';
+            ctx.lineWidth = 1.5;
+            for (let x = startX; x < W; x += gridSize * 5) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, H);
+                ctx.stroke();
+            }
+            for (let y = startY; y < H; y += gridSize * 5) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(W, y);
+                ctx.stroke();
+            }
+        }
+        
+        // Trục tọa độ giống GeoGebra
+        if (showAxes) {
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([]);
+            
+            // Trục X
+            ctx.beginPath();
+            ctx.moveTo(0, offsetY + H/2);
+            ctx.lineTo(W, offsetY + H/2);
+            ctx.stroke();
+            
+            // Trục Y
+            ctx.beginPath();
+            ctx.moveTo(offsetX + W/2, 0);
+            ctx.lineTo(offsetX + W/2, H);
+            ctx.stroke();
+            
+            // Mũi tên
+            const arrowSize = 10;
+            // Mũi tên trục X
+            ctx.beginPath();
+            ctx.moveTo(W - arrowSize, offsetY + H/2 - arrowSize/2);
+            ctx.lineTo(W, offsetY + H/2);
+            ctx.lineTo(W - arrowSize, offsetY + H/2 + arrowSize/2);
+            ctx.stroke();
+            
+            // Mũi tên trục Y
+            ctx.beginPath();
+            ctx.moveTo(offsetX + W/2 - arrowSize/2, arrowSize);
+            ctx.lineTo(offsetX + W/2, 0);
+            ctx.lineTo(offsetX + W/2 + arrowSize/2, arrowSize);
+            ctx.stroke();
+            
+            // Đánh số trục
+            ctx.fillStyle = '#000000';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            
+            const tickSize = 5;
+            const step = BASE_SCALE * scale;
+            
+            // Đánh số trục X
+            for (let x = offsetX + W/2 + step; x < W; x += step) {
+                const value = Math.round((x - offsetX - W/2) / step);
+                if (value !== 0) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, offsetY + H/2 - tickSize);
+                    ctx.lineTo(x, offsetY + H/2 + tickSize);
+                    ctx.stroke();
+                    ctx.fillText(value.toString(), x, offsetY + H/2 + tickSize + 2);
+                }
+            }
+            for (let x = offsetX + W/2 - step; x > 0; x -= step) {
+                const value = Math.round((x - offsetX - W/2) / step);
+                if (value !== 0) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, offsetY + H/2 - tickSize);
+                    ctx.lineTo(x, offsetY + H/2 + tickSize);
+                    ctx.stroke();
+                    ctx.fillText(value.toString(), x, offsetY + H/2 + tickSize + 2);
+                }
+            }
+            
+            // Đánh số trục Y
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'middle';
+            for (let y = offsetY + H/2 + step; y < H; y += step) {
+                const value = Math.round((offsetY + H/2 - y) / step);
+                if (value !== 0) {
+                    ctx.beginPath();
+                    ctx.moveTo(offsetX + W/2 - tickSize, y);
+                    ctx.lineTo(offsetX + W/2 + tickSize, y);
+                    ctx.stroke();
+                    ctx.fillText(value.toString(), offsetX + W/2 - tickSize - 2, y);
+                }
+            }
+            for (let y = offsetY + H/2 - step; y > 0; y -= step) {
+                const value = Math.round((offsetY + H/2 - y) / step);
+                if (value !== 0) {
+                    ctx.beginPath();
+                    ctx.moveTo(offsetX + W/2 - tickSize, y);
+                    ctx.lineTo(offsetX + W/2 + tickSize, y);
+                    ctx.stroke();
+                    ctx.fillText(value.toString(), offsetX + W/2 - tickSize - 2, y);
+                }
+            }
+            
+            // Gốc tọa độ
+            ctx.fillStyle = '#000000';
+            ctx.font = 'bold 12px Arial';
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'top';
+            ctx.fillText('O', offsetX + W/2 - 5, offsetY + H/2 + 5);
+        }
+
+        const color = document.getElementById('color').value;
+        const thickness = parseFloat(document.getElementById('thickness').value) || 2;
+        const lineStyle = document.getElementById('line-style').value;
+        const fillColor = document.getElementById('fill-color').value;
+        const opacity = parseFloat(document.getElementById('opacity').value) / 100;
+
+        // Fills & Clips
+        state.clips.forEach(clip => {
+            ctx.save(); ctx.beginPath(); 
+            const first = toCanvas(clip.points[0].x, clip.points[0].y);
+            ctx.moveTo(first.x, first.y);
+            for (let i = 1; i < clip.points.length; i++) {
+                const p = toCanvas(clip.points[i].x, clip.points[i].y);
+                ctx.lineTo(p.x, p.y);
+            }
+            ctx.closePath(); ctx.clip();
+        });
+        
+        state.fills.forEach(fill => {
+            ctx.fillStyle = fill.color || fillColor; 
+            ctx.globalAlpha = fill.opacity || opacity;
+            ctx.beginPath(); 
+            const first = toCanvas(fill.points[0].x, fill.points[0].y);
+            ctx.moveTo(first.x, first.y);
+            for (let i = 1; i < fill.points.length; i++) {
+                const p = toCanvas(fill.points[i].x, fill.points[i].y);
+                ctx.lineTo(p.x, p.y);
+            }
+            ctx.closePath(); ctx.fill(); 
+            ctx.globalAlpha = 1;
+        });
+        
+        state.fillCircles.forEach(fc => {
+            ctx.fillStyle = fc.color || fillColor; 
+            ctx.globalAlpha = fc.opacity || opacity;
+            const center = toCanvas(fc.center.x, fc.center.y);
+            const r = (fc.radius || Math.hypot(fc.pointOnCircle.x - fc.center.x, fc.pointOnCircle.y - fc.center.y)) * (BASE_SCALE * scale);
+            ctx.beginPath(); 
+            ctx.arc(center.x, center.y, r, 0, Math.PI * 2); 
+            ctx.fill(); 
+            ctx.globalAlpha = 1;
+        });
+
+        // Lines & Shapes
+        ctx.strokeStyle = color; 
+        ctx.fillStyle = color; 
+        ctx.lineWidth = thickness;
+        if (lineStyle === 'dashed') ctx.setLineDash([10, 8]); 
+        else if (lineStyle === 'dotted') ctx.setLineDash([3, 6]); 
+        else ctx.setLineDash([]);
+        
+        state.segments.forEach(seg => { 
+            const p1 = toCanvas(seg.p1.x, seg.p1.y);
+            const p2 = toCanvas(seg.p2.x, seg.p2.y);
+            ctx.beginPath(); 
+            ctx.moveTo(p1.x, p1.y); 
+            ctx.lineTo(p2.x, p2.y); 
+            ctx.stroke(); 
+        });
+        
+        // FIXED: Vẽ tiếp tuyến với điểm tiếp xúc chính xác
+        state.tangents.forEach(t => { 
+            const ptCanvas = toCanvas(t.pt.x, t.pt.y);
+            const t1Canvas = toCanvas(t.t1.x, t.t1.y);
+            const t2Canvas = toCanvas(t.t2.x, t.t2.y);
+            
+            if (t.t1 && t.t1.x !== undefined) {
+                ctx.beginPath(); 
+                ctx.moveTo(ptCanvas.x, ptCanvas.y); 
+                ctx.lineTo(t1Canvas.x, t1Canvas.y); 
+                ctx.stroke();
+            }
+            if (t.t2 && t.t2.x !== undefined) {
+                ctx.beginPath(); 
+                ctx.moveTo(ptCanvas.x, ptCanvas.y); 
+                ctx.lineTo(t2Canvas.x, t2Canvas.y); 
+                ctx.stroke();
+            }
+        });
+        
+        state.lines.forEach(line => {
+            const p1 = toCanvas(line.p1.x, line.p1.y);
+            const p2 = toCanvas(line.p2.x, line.p2.y);
+            const dx = p2.x - p1.x, dy = p2.y - p1.y; 
+            const len = Math.hypot(dx, dy); 
+            if(len < 1e-6) return;
+            const ux = dx / len, uy = dy / len; 
+            const ext = 2000;
+            ctx.beginPath(); 
+            ctx.moveTo(p1.x - ext * ux, p1.y - ext * uy); 
+            ctx.lineTo(p1.x + ext * ux, p1.y + ext * uy); 
+            ctx.stroke();
+        });
+        
+        state.circles.forEach(circ => {
+            const center = toCanvas(circ.p1.x, circ.p1.y);
+            const radius = Math.hypot(circ.p2.x - circ.p1.x, circ.p2.y - circ.p1.y) * (BASE_SCALE * scale);
+            ctx.beginPath(); 
+            ctx.arc(center.x, center.y, radius, 0, Math.PI * 2); 
+            ctx.stroke();
+        });
+        
+        state.circleRadii.forEach(circ => { 
+            const center = toCanvas(circ.center.x, circ.center.y);
+            const radius = circ.radius * (BASE_SCALE * scale);
+            ctx.beginPath(); 
+            ctx.arc(center.x, center.y, radius, 0, Math.PI * 2); 
+            ctx.stroke(); 
+        });
+        
+        state.arcs.forEach(arc => {
+            const center = toCanvas(arc.p1.x, arc.p1.y);
+            const radius = Math.hypot(arc.p2.x - arc.p1.x, arc.p2.y - arc.p1.y) * (BASE_SCALE * scale);
+            const startAngle = Math.atan2(arc.p2.y - arc.p1.y, arc.p2.x - arc.p1.x);
+            const endAngle = Math.atan2(arc.p3.y - arc.p1.y, arc.p3.x - arc.p1.x);
+            ctx.beginPath(); 
+            ctx.arc(center.x, center.y, radius, startAngle, endAngle); 
+            ctx.stroke();
+        });
+        
+        state.polygons.forEach(poly => {
+            if (poly.points.length < 2) return;
+            ctx.beginPath(); 
+            const first = toCanvas(poly.points[0].x, poly.points[0].y);
+            ctx.moveTo(first.x, first.y);
+            for (let i = 1; i < poly.points.length; i++) {
+                const p = toCanvas(poly.points[i].x, poly.points[i].y);
+                ctx.lineTo(p.x, p.y);
+            }
+            ctx.closePath(); 
+            ctx.stroke();
+        });
+
+        // --- PREVIEW LAYER ---
+        if (temp.length > 0) {
+            ctx.save(); 
+            ctx.strokeStyle = '#9ca3af'; 
+            ctx.setLineDash([5, 5]); 
+            ctx.lineWidth = 1.5;
+            
+            const lastPoint = temp[temp.length - 1];
+            const p1Canvas = toCanvas(lastPoint.x, lastPoint.y);
+            
+            if (['segment','line','perp-bisector','sym-line','mark-segment'].includes(tool)) {
+                ctx.beginPath(); 
+                ctx.moveTo(p1Canvas.x, p1Canvas.y); 
+                ctx.lineTo(mousePos.x, mousePos.y); 
+                ctx.stroke();
+                
+                if(tool === 'line') {
+                    const dx = mousePos.x - p1Canvas.x, dy = mousePos.y - p1Canvas.y; 
+                    const len = Math.hypot(dx, dy);
+                    if(len > 1) { 
+                        const ux = dx/len, uy = dy/len; 
+                        ctx.beginPath(); 
+                        ctx.moveTo(p1Canvas.x - 1000*ux, p1Canvas.y - 1000*uy); 
+                        ctx.lineTo(p1Canvas.x + 1000*ux, p1Canvas.y + 1000*uy); 
+                        ctx.stroke(); 
+                    }
+                }
+            } else if (tool === 'circle') {
+                const r = Math.hypot(mousePos.x - p1Canvas.x, mousePos.y - p1Canvas.y);
+                ctx.beginPath(); 
+                ctx.arc(p1Canvas.x, p1Canvas.y, r, 0, Math.PI * 2); 
+                ctx.stroke();
+            } else if (tool === 'polygon' || tool === 'fill-polygon') {
+                 ctx.beginPath(); 
+                 ctx.moveTo(p1Canvas.x, p1Canvas.y); 
+                 ctx.lineTo(mousePos.x, mousePos.y); 
+                 ctx.stroke();
+                 
+                 if(temp.length > 1) { 
+                     ctx.setLineDash([2, 8]); 
+                     const firstCanvas = toCanvas(temp[0].x, temp[0].y);
+                     ctx.beginPath(); 
+                     ctx.moveTo(mousePos.x, mousePos.y); 
+                     ctx.lineTo(firstCanvas.x, firstCanvas.y); 
+                     ctx.stroke(); 
+                 }
+            } else if (tool === 'tangent' && temp.length === 2) {
+                 // Preview tangent
+                 const center = toCanvas(temp[1].x, temp[1].y);
+                 const r = Math.hypot(mousePos.x - center.x, mousePos.y - center.y);
+                 ctx.beginPath(); 
+                 ctx.arc(center.x, center.y, r, 0, Math.PI*2); 
+                 ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        // --- HOVER EFFECT ---
+        const hoverP = findPoint(mousePos.x, mousePos.y);
+        if (hoverP && !moving && !isPanning) {
+            ctx.save(); 
+            ctx.strokeStyle = '#2563eb'; 
+            ctx.lineWidth = 2;
+            const canvasPos = toCanvas(hoverP.x, hoverP.y);
+            ctx.beginPath(); 
+            ctx.arc(canvasPos.x, canvasPos.y, 8, 0, Math.PI * 2); 
+            ctx.stroke(); 
+            ctx.restore();
+        }
+
+        // Marks
+        ctx.setLineDash([]);
+        
+        state.markAngles.forEach(mark => {
+            const vertex = toCanvas(mark.vertex.x, mark.vertex.y);
+            const p1 = toCanvas(mark.p1.x, mark.p1.y);
+            const p2 = toCanvas(mark.p2.x, mark.p2.y);
+            const r = 20 * scale;
+            const ang1 = Math.atan2(p1.y - vertex.y, p1.x - vertex.x);
+            const ang2 = Math.atan2(p2.y - vertex.y, p2.x - vertex.x);
+            ctx.beginPath(); 
+            ctx.arc(vertex.x, vertex.y, r, ang1, ang2); 
+            ctx.stroke();
+        });
+        
+        state.markRights.forEach(mark => {
+            const vertex = toCanvas(mark.vertex.x, mark.vertex.y);
+            const p1 = toCanvas(mark.p1.x, mark.p1.y);
+            const p2 = toCanvas(mark.p2.x, mark.p2.y);
+            const size = 15 * scale;
+            const dx1 = p1.x - vertex.x, dy1 = p1.y - vertex.y;
+            const dx2 = p2.x - vertex.x, dy2 = p2.y - vertex.y;
+            const len1 = Math.hypot(dx1, dy1), len2 = Math.hypot(dx2, dy2);
+            const ux1 = dx1 / len1, uy1 = dy1 / len1;
+            const ux2 = dx2 / len2, uy2 = dy2 / len2;
+            const corner = { 
+                x: vertex.x + size * ux1 + size * ux2, 
+                y: vertex.y + size * uy1 + size * uy2 
+            };
+            ctx.beginPath(); 
+            ctx.moveTo(vertex.x + size * ux1, vertex.y + size * uy1); 
+            ctx.lineTo(corner.x, corner.y); 
+            ctx.lineTo(vertex.x + size * ux2, vertex.y + size * uy2); 
+            ctx.stroke();
+        });
+        
+        state.markSegments.forEach(mark => {
+            const p1 = toCanvas(mark.p1.x, mark.p1.y);
+            const p2 = toCanvas(mark.p2.x, mark.p2.y);
+            const mx = (p1.x + p2.x) / 2, my = (p1.y + p2.y) / 2; 
+            const dx = p2.x - p1.x, dy = p2.y - p1.y; 
+            const len = Math.hypot(dx, dy);
+            const ux = -dy / len, uy = dx / len; 
+            const type = mark.mark || (mark.count == 2 ? '||' : (mark.count == 3 ? '|||' : '|'));
+            
+            ctx.save();
+            ctx.lineWidth = 1.5;
+            
+            if (type.includes('|')) {
+                const count = type.length;
+                const size = 8 * scale, gap = 4 * scale;
+                for (let i = 0; i < count; i++) {
+                    const offset = (i - (count - 1) / 2) * gap;
+                    ctx.beginPath(); 
+                    ctx.moveTo(mx + offset * uy - size * ux, my - offset * ux - size * uy); 
+                    ctx.lineTo(mx + offset * uy + size * ux, my - offset * ux + size * uy); 
+                    ctx.stroke();
+                }
+            } else if (type === 'x') {
+                const size = 6 * scale;
+                ctx.beginPath();
+                ctx.moveTo(mx - size, my - size); 
+                ctx.lineTo(mx + size, my + size);
+                ctx.moveTo(mx - size, my + size); 
+                ctx.lineTo(mx + size, my - size);
+                ctx.stroke();
+            } else if (type === 'o') {
+                ctx.beginPath(); 
+                ctx.arc(mx, my, 4 * scale, 0, Math.PI*2); 
+                ctx.stroke();
+            } else if (type === 'z' || type === 's') {
+                ctx.font = `${14 * scale}px sans-serif`; 
+                ctx.textAlign='center'; 
+                ctx.textBaseline='middle';
+                ctx.fillText(type, mx, my);
+            }
+            ctx.restore();
+        });
+
+        // Points & Labels
+        state.points.forEach(p => {
+            const canvasPos = toCanvas(p.x, p.y);
+            if(p.generated && tool !== 'move') { 
+                ctx.fillStyle = '#dc2626'; 
+                ctx.beginPath(); 
+                ctx.arc(canvasPos.x, canvasPos.y, 4 * scale, 0, Math.PI * 2); 
+                ctx.fill(); 
+            } else { 
+                ctx.fillStyle = '#dc2626'; 
+                ctx.beginPath(); 
+                ctx.arc(canvasPos.x, canvasPos.y, 5 * scale, 0, Math.PI * 2); 
+                ctx.fill(); 
+            }
+            ctx.fillStyle = '#000'; 
+            ctx.font = `bold ${14 * scale}px Arial`; 
+            ctx.fillText(p.name, canvasPos.x + 8 * scale, canvasPos.y - 8 * scale);
+        });
+        
+        state.labels.forEach(lbl => { 
+            const canvasPos = toCanvas(lbl.point.x, lbl.point.y);
+            ctx.fillStyle = '#000'; 
+            ctx.font = `${14 * scale}px Arial`; 
+            ctx.fillText(lbl.text, canvasPos.x + 10 * scale, canvasPos.y - 10 * scale); 
+        });
+        
+        state.labelSegments.forEach(lbl => { 
+            const p1 = toCanvas(lbl.p1.x, lbl.p1.y);
+            const p2 = toCanvas(lbl.p2.x, lbl.p2.y);
+            const mx = (p1.x + p2.x) / 2, my = (p1.y + p2.y) / 2; 
+            ctx.fillStyle = '#000'; 
+            ctx.font = `${13 * scale}px Arial`; 
+            ctx.fillText(lbl.text, mx + 5 * scale, my - 5 * scale); 
+        });
+        
+        state.labelAngles.forEach(lbl => {
+            const vertex = toCanvas(lbl.vertex.x, lbl.vertex.y);
+            const p1 = toCanvas(lbl.p1.x, lbl.p1.y);
+            const p2 = toCanvas(lbl.p2.x, lbl.p2.y);
+            const r = 30 * scale; 
+            const ang1 = Math.atan2(p1.y - vertex.y, p1.x - vertex.x); 
+            const ang2 = Math.atan2(p2.y - vertex.y, p2.x - vertex.x); 
+            const midAng = (ang1 + ang2) / 2;
+            const lx = vertex.x + r * Math.cos(midAng); 
+            const ly = vertex.y + r * Math.sin(midAng);
+            ctx.fillStyle = '#000'; 
+            ctx.font = `${13 * scale}px Arial`; 
+            ctx.fillText(lbl.text, lx, ly);
+        });
+
+        if (temp.length > 0) { 
+            ctx.fillStyle = '#3b82f6'; 
+            temp.forEach(p => { 
+                const canvasPos = toCanvas(p.x, p.y);
+                ctx.beginPath(); 
+                ctx.arc(canvasPos.x, canvasPos.y, 6 * scale, 0, Math.PI * 2); 
+                ctx.fill(); 
+            }); 
+        }
+        
+        if (state.clips.length > 0) ctx.restore();
+        generateCode();
+    }
+
+    function generateCode() {
+        let latex = '\\begin{tikzpicture}\n';
+        latex += '  % Định nghĩa điểm\n';
+        state.points.forEach(p => { if (!p.generated) latex += `  \\tkzDefPoint${toTikZ(p.x, p.y)}{${p.name}}\n`; });
+        
+        if (state.midpoints.length) latex += '  % Trung điểm\n';
+        state.midpoints.forEach(m => latex += `  \\tkzDefMidPoint(${m.p1.name},${m.p2.name})\\tkzGetPoint{${m.result.name}}\n`);
+        if (state.circumcenters.length) latex += '  % Tâm ngoại tiếp\n';
+        state.circumcenters.forEach(cc => latex += `  \\tkzDefCircumCenter(${cc.p1.name},${cc.p2.name},${cc.p3.name})\\tkzGetPoint{${cc.result.name}}\n`);
+        if (state.incenters.length) latex += '  % Tâm nội tiếp\n';
+        state.incenters.forEach(ic => latex += `  \\tkzDefInCenter(${ic.p1.name},${ic.p2.name},${ic.p3.name})\\tkzGetPoint{${ic.result.name}}\n`);
+        if (state.orthocenters.length) latex += '  % Trực tâm\n';
+        state.orthocenters.forEach(oc => latex += `  \\tkzDefOrthoCenter(${oc.p1.name},${oc.p2.name},${oc.p3.name})\\tkzGetPoint{${oc.result.name}}\n`);
+        if (state.centroids.length) latex += '  % Trọng tâm\n';
+        state.centroids.forEach(c => latex += `  \\tkzDefBarycentricPoint(${c.p1.name}=1,${c.p2.name}=1,${c.p3.name}=1)\\tkzGetPoint{${c.result.name}}\n`);
+        if (state.intersections.length) latex += '  % Giao điểm (Line-Line/Line-Circle)\n';
+        state.intersections.forEach(inter => {
+            if (inter.type === 'll') latex += `  \\tkzInterLL(${inter.l1p1.name},${inter.l1p2.name})(${inter.l2p1.name},${inter.l2p2.name})\\tkzGetPoint{${inter.result.name}}\n`;
+            else if (inter.type === 'cl') latex += `  \\tkzInterLC(${inter.lp1.name},${inter.lp2.name})(${inter.center.name},${inter.pointOnCircle.name})\\tkzGetPoints{${inter.result1.name}}{${inter.result2.name}}\n`;
+        });
+        
+        if (state.intersectionsCC.length) latex += '  % Giao 2 đường tròn\n';
+        state.intersectionsCC.forEach(cc => latex += `  \\tkzInterCC(${cc.c1.name},${cc.c1r.name})(${cc.c2.name},${cc.c2r.name})\\tkzGetPoints{${cc.res1.name}}{${cc.res2.name}}\n`);
+
+        if (state.tangents.length) latex += '  % Tiếp tuyến\n';
+        state.tangents.forEach(t => {
+            latex += `  \\tkzDefLine[tangent from=${t.pt.name}](${t.c.name},${t.cr.name})\\tkzGetPoints{${t.t1.name}}{${t.t2.name}}\n`;
+            latex += `  \\tkzDrawSegments(${t.pt.name},${t.t1.name} ${t.pt.name},${t.t2.name})\n`;
+        });
+
+        if (state.symPoints.length) latex += '  % Đối xứng tâm\n';
+        state.symPoints.forEach(s => latex += `  \\tkzDefPointBy[symmetry=center ${s.center.name}](${s.pt.name})\\tkzGetPoint{${s.res.name}}\n`);
+        
+        if (state.symLines.length) latex += '  % Đối xứng trục\n';
+        state.symLines.forEach(s => latex += `  \\tkzDefPointBy[reflection=over ${s.lp1.name}--${s.lp2.name}](${s.pt.name})\\tkzGetPoint{${s.res.name}}\n`);
+        
+        if (state.translations.length) latex += '  % Tịnh tiến\n';
+        state.translations.forEach(tr => latex += `  \\tkzDefPointBy[translation=from ${tr.v1.name} to ${tr.v2.name}](${tr.pt.name})\\tkzGetPoint{${tr.res.name}}\n`);
+
+        if (state.projections.length) latex += '  % Hình chiếu\n';
+        state.projections.forEach(proj => latex += `  \\tkzDefPointBy[projection=onto ${proj.lp1.name}--${proj.lp2.name}](${proj.point.name})\\tkzGetPoint{${proj.result.name}}\n`);
+
+        latex += '\n  % Các đường đặc biệt\n';
+        state.perpBisectors.forEach(pb => { latex += `  \\tkzDefLine[mediator](${pb.p1.name},${pb.p2.name})\\tkzGetPoints{${pb.p1_res.name}}{${pb.p2_res.name}}\n  \\tkzDrawLine(${pb.p1_res.name},${pb.p2_res.name})\n`; });
+        state.angleBisectors.forEach(ab => { latex += `  \\tkzDefLine[bisector](${ab.p1.name},${ab.vertex.name},${ab.p2.name})\\tkzGetPoint{${ab.res.name}}\n  \\tkzDrawLine(${ab.vertex.name},${ab.res.name})\n`; });
+        state.perpendiculars.forEach(perp => { latex += `  \\tkzDefLine[perpendicular=through ${perp.through.name}](${perp.lp1.name},${perp.lp2.name})\\tkzGetPoint{${perp.res.name}}\n  \\tkzDrawLine(${perp.through.name},${perp.res.name})\n`; });
+        state.parallels.forEach(par => { latex += `  \\tkzDefLine[parallel=through ${par.through.name}](${par.lp1.name},${par.lp2.name})\\tkzGetPoint{${par.res.name}}\n  \\tkzDrawLine(${par.through.name},${par.res.name})\n`; });
+
+        if (state.fills.length || state.fillCircles.length) {
+            latex += '  % Tô màu\n';
+            state.fills.forEach(fill => latex += `  \\tkzFillPolygon[fill=blue!30,opacity=${fill.opacity||0.3}](${fill.points.map(p=>p.name).join(',')})\n`);
+            state.fillCircles.forEach(fc => latex += `  \\tkzFillCircle[fill=blue!30,opacity=${fc.opacity||0.3}](${fc.center.name},${fc.pointOnCircle.name})\n`);
+        }
+        if (state.clips.length) state.clips.forEach(clip => latex += `  \\tkzClipPolygon(${clip.points.map(p=>p.name).join(',')})\n`);
+
+        latex += '  % Vẽ hình\n';
+        state.segments.forEach(seg => latex += `  \\tkzDrawSegment(${seg.p1.name},${seg.p2.name})\n`);
+        state.medians.forEach(med => latex += `  \\tkzDrawSegment(${med.p1.name},${med.result.name})\n`);
+        state.altitudes.forEach(alt => latex += `  \\tkzDrawSegment(${alt.p1.name},${alt.result.name})\n`);
+        state.lines.forEach(line => { if(!line.isGenerated) latex += `  \\tkzDrawLine(${line.p1.name},${line.p2.name})\n`; });
+        state.circles.forEach(circ => latex += `  \\tkzDrawCircle(${circ.p1.name},${circ.p2.name})\n`);
+        state.circleRadii.forEach(circ => latex += `  \\tkzDrawCircle[R](${circ.center.name},${circ.radius.toFixed(2)}cm)\n`);
+        state.arcs.forEach(arc => latex += `  \\tkzDrawArc(${arc.p1.name},${arc.p2.name})(${arc.p3.name})\n`);
+        state.polygons.forEach(poly => latex += `  \\tkzDrawPolygon(${poly.points.map(p=>p.name).join(',')})\n`);
+
+        if (state.markAngles.length || state.markRights.length || state.markSegments.length) {
+            latex += '  % Đánh dấu\n';
+            state.markRights.forEach(mark => latex += `  \\tkzMarkRightAngle(${mark.p1.name},${mark.vertex.name},${mark.p2.name})\n`);
+            state.markAngles.forEach(mark => latex += `  \\tkzMarkAngle[size=0.6](${mark.p1.name},${mark.vertex.name},${mark.p2.name})\n`);
+            state.markSegments.forEach(mark => { 
+                let sym = mark.mark || (mark.count===2?'||':(mark.count===3?'|||':'|')); 
+                latex += `  \\tkzMarkSegment[mark=${sym}](${mark.p1.name},${mark.p2.name})\n`; 
+            });
+        }
+        latex += '  % Nhãn\n';
+        state.labels.forEach(lbl => latex += `  \\tkzLabelPoint[above right](${lbl.point.name}){${lbl.text}$}\n`);
+        state.labelSegments.forEach(lbl => latex += `  \\tkzLabelSegment[above](${lbl.p1.name},${lbl.p2.name}){${lbl.text}$}\n`);
+        state.labelAngles.forEach(lbl => latex += `  \\tkzLabelAngle[pos=1](${lbl.p1.name},${lbl.vertex.name},${lbl.p2.name}){${lbl.text}$}\n`);
+        
+        if (state.points.length > 0) { 
+            const pointNames = state.points.map(p => p.name).join(','); 
+            latex += `  \\tkzDrawPoints(${pointNames})\n  \\tkzLabelPoints(${pointNames})\n`; 
+        }
+        latex += '\\end{tikzpicture}';
+        codeEl.value = latex;
+    }
+
+    // --- EVENT HANDLING ---
+    function handleStart(e) {
+        if(e.type === 'touchstart') e.preventDefault();
+        const pos = getPointerPos(e);
+        const mx = pos.x; const my = pos.y;
+        mousePos = pos;
+        lastMousePos = pos;
+
+        if (tool === 'point-on-circle') {
+            handlePointOnCircle({ x: mx, y: my });
+            return;
+        }
+        
+        // Panning với chuột giữa hoặc Alt+click
+        if (e.button === 1 || e.altKey || tool === 'move' && !findPoint(mx, my)) {
+            isPanning = true;
+            canvas.style.cursor = 'grabbing';
+            return;
+        }
+        
+        if (tool === 'move') { 
+            moving = findPoint(mx, my); 
+            if (!moving) {
+                isPanning = true;
+                canvas.style.cursor = 'grabbing';
+            }
+            return; 
+        }
+        
+        if (tool === 'delete') {
+            const p = findPoint(mx, my);
+            if (p) {
+                if(p.generated) { showStatus('Không thể xóa trực tiếp điểm phụ thuộc!'); return; }
+                state.points = state.points.filter(pt => pt !== p);
+                state.segments = state.segments.filter(s => s.p1 !== p && s.p2 !== p);
+                state.lines = state.lines.filter(l => l.p1 !== p && l.p2 !== p);
+                state.circles = state.circles.filter(c => c.p1 !== p && c.p2 !== p);
+                state.polygons = state.polygons.filter(poly => !poly.points.includes(p));
+                // Clean up references
+                state.midpoints = state.midpoints.filter(i => i.p1 !== p && i.p2 !== p);
+                save(); draw(); showStatus('Đã xóa điểm');
+            }
+            return;
+        }
+
+        let p = findPoint(mx, my);
+        if (!p && tool === 'point') {
+            const snapped = snapPoint(mx, my);
+            p = { x: snapped.x, y: snapped.y, name: newName() };
+            state.points.push(p); save(); draw(); showStatus(`Đã thêm điểm ${p.name}`); return;
+        }
+        
+        // Auto-create point if clicking empty space for most tools
+        if (!p && ['segment','line','circle','polygon','triangle','tangent','sym-point','sym-line','translation','mark-segment'].includes(tool)) {
+             const snapped = snapPoint(mx, my);
+             p = { x: snapped.x, y: snapped.y, name: newName() };
+             state.points.push(p);
+        }
+
+        if (p) {
+            temp.push(p);
+            
+            // Logic các công cụ
+            if (tool === 'midpoint' && temp.length === 2) { const mid = calcMid(temp[0], temp[1]); const newP = { x: mid.x, y: mid.y, name: newName(), generated: true }; state.points.push(newP); state.midpoints.push({p1: temp[0], p2: temp[1], result: newP}); temp = []; save(); draw(); showStatus('Đã thêm trung điểm'); }
+            if (tool === 'centroid' && temp.length === 3) { const res = calcCentroid(temp[0], temp[1], temp[2]); const newP = { x: res.x, y: res.y, name: newName(), generated: true }; state.points.push(newP); state.centroids.push({p1: temp[0], p2: temp[1], p3: temp[2], result: newP}); temp = []; save(); draw(); showStatus('Đã thêm trọng tâm'); }
+            if (tool === 'circumcenter' && temp.length === 3) { const res = calcCircumcenter(temp[0], temp[1], temp[2]); if(res){const newP = { x: res.x, y: res.y, name: newName(), generated: true }; state.points.push(newP); state.circumcenters.push({p1: temp[0], p2: temp[1], p3: temp[2], result: newP});} temp = []; save(); draw(); showStatus('Đã thêm tâm ngoại tiếp'); }
+            if (tool === 'incenter' && temp.length === 3) { const res = calcIncenter(temp[0], temp[1], temp[2]); const newP = { x: res.x, y: res.y, name: newName(), generated: true }; state.points.push(newP); state.incenters.push({p1: temp[0], p2: temp[1], p3: temp[2], result: newP}); temp = []; save(); draw(); showStatus('Đã thêm tâm nội tiếp'); }
+            if (tool === 'orthocenter' && temp.length === 3) { const res = calcOrthocenter(temp[0], temp[1], temp[2]); if(res){const newP = { x: res.x, y: res.y, name: newName(), generated: true }; state.points.push(newP); state.orthocenters.push({p1: temp[0], p2: temp[1], p3: temp[2], result: newP});} temp = []; save(); draw(); showStatus('Đã thêm trực tâm'); }
+
+            if (tool === 'segment' && temp.length === 2) { state.segments.push({p1: temp[0], p2: temp[1]}); temp=[]; save(); draw(); showStatus('Đã vẽ đoạn thẳng'); }
+            if (tool === 'line' && temp.length === 2) { state.lines.push({p1: temp[0], p2: temp[1]}); temp=[]; save(); draw(); showStatus('Đã vẽ đường thẳng'); }
+            if (tool === 'circle' && temp.length === 2) { state.circles.push({p1: temp[0], p2: temp[1]}); temp=[]; save(); draw(); showStatus('Đã vẽ đường tròn'); }
+            if (tool === 'circle-radius' && temp.length === 1) { 
+                const radius = parseFloat(prompt('Nhập bán kính (cm):', '3'));
+                if(radius) state.circleRadii.push({center: temp[0], radius: radius}); 
+                temp=[]; save(); draw(); 
+            }
+            if (tool === 'polygon' && temp.length > 2 && temp[0] === p) {
+                state.polygons.push({points: [...temp].slice(0,-1)}); temp=[]; save(); draw(); showStatus('Đã vẽ đa giác');
+            } else if (tool === 'polygon' && temp.length >= 2 && p === temp[0]) {
+                 state.polygons.push({points: [...temp].slice(0,-1)}); temp=[]; save(); draw(); showStatus('Đã vẽ đa giác');
+            }
+            if (tool === 'arc' && temp.length === 3) { state.arcs.push({p1: temp[0], p2: temp[1], p3: temp[2]}); temp=[]; save(); draw(); showStatus('Đã vẽ cung'); }
+
+            if (tool === 'perp-bisector' && temp.length === 2) { const r1={x:0,y:0,name:newName(),generated:true}; const r2={x:0,y:0,name:newName(),generated:true}; state.points.push(r1,r2); state.perpBisectors.push({p1:temp[0], p2:temp[1], p1_res:r1, p2_res:r2}); temp=[]; save(); draw(); }
+            if (tool === 'median' && temp.length === 2) { const r={x:0,y:0,name:newName(),generated:true}; state.points.push(r); state.midpoints.push({p1:temp[0], p2:temp[1], result:r}); state.medians.push({p1:temp[0], result:r}); temp=[]; save(); draw(); }
+            if (tool === 'median' && temp.length === 3) { const r={x:0,y:0,name:newName(),generated:true}; state.points.push(r); state.midpoints.push({p1:temp[1], p2:temp[2], result:r}); state.medians.push({p1:temp[0], result:r}); temp=[]; save(); draw(); }
+            if (tool === 'altitude' && temp.length === 3) { const r={x:0,y:0,name:newName(),generated:true}; state.points.push(r); state.projections.push({point:temp[0], lp1:temp[1], lp2:temp[2], result:r}); state.altitudes.push({p1:temp[0], result:r}); temp=[]; save(); draw(); }
+            if (tool === 'angle-bisector' && temp.length === 3) { const r={x:0,y:0,name:newName(),generated:true}; state.points.push(r); state.angleBisectors.push({p1:temp[0], vertex:temp[1], p2:temp[2], res:r}); temp=[]; save(); draw(); }
+            if (tool === 'perpendicular' && temp.length === 3) { const r={x:0,y:0,name:newName(),generated:true}; state.points.push(r); state.perpendiculars.push({through:temp[0], lp1:temp[1], lp2:temp[2], res:r}); temp=[]; save(); draw(); }
+            if (tool === 'parallel' && temp.length === 3) { const r={x:0,y:0,name:newName(),generated:true}; state.points.push(r); state.parallels.push({through:temp[0], lp1:temp[1], lp2:temp[2], res:r}); temp=[]; save(); draw(); }
+            
+            if (tool === 'intersection-ll' && temp.length === 4) { const r={x:0,y:0,name:newName(),generated:true}; state.points.push(r); state.intersections.push({type:'ll', l1p1:temp[0], l1p2:temp[1], l2p1:temp[2], l2p2:temp[3], result:r}); temp=[]; save(); draw(); }
+            
+            // --- NEW TOOLS ---
+            if (tool === 'tangent' && temp.length === 3) {
+                 // 1: Point, 2: Center, 3: Point on Circle (để xác định bán kính)
+                 const t1 = {x:0,y:0,name:newName(),generated:true};
+                 const t2 = {x:0,y:0,name:newName(),generated:true};
+                 state.points.push(t1, t2);
+                 state.tangents.push({pt: temp[0], c: temp[1], cr: temp[2], t1: t1, t2: t2});
+                 temp = []; save(); draw(); showStatus('Đã vẽ tiếp tuyến');
+            }
+            
+            if (tool === 'inter-cc' && temp.length === 4) {
+                 // 1,2: Circle 1; 3,4: Circle 2
+                 const r1 = {x:0,y:0,name:newName(),generated:true};
+                 const r2 = {x:0,y:0,name:newName(),generated:true};
+                 state.points.push(r1, r2);
+                 state.intersectionsCC.push({c1: temp[0], c1r: temp[1], c2: temp[2], c2r: temp[3], res1: r1, res2: r2});
+                 temp = []; save(); draw(); showStatus('Đã tìm giao 2 đường tròn');
+            }
+            
+            if (tool === 'sym-point' && temp.length === 2) {
+                 // 1: Center, 2: Point
+                 const r = {x:0,y:0,name:newName(),generated:true};
+                 state.points.push(r);
+                 state.symPoints.push({center: temp[0], pt: temp[1], res: r});
+                 temp = []; save(); draw(); showStatus('Đã lấy đối xứng tâm');
+            }
+            
+            if (tool === 'sym-line' && temp.length === 3) {
+                 // 1,2: Line; 3: Point
+                 const r = {x:0,y:0,name:newName(),generated:true};
+                 state.points.push(r);
+                 state.symLines.push({lp1: temp[0], lp2: temp[1], pt: temp[2], res: r});
+                 temp = []; save(); draw(); showStatus('Đã lấy đối xứng trục');
+            }
+            
+            if (tool === 'translation' && temp.length === 3) {
+                 // 1: From, 2: To (Vector), 3: Point to move
+                 const r = {x:0,y:0,name:newName(),generated:true};
+                 state.points.push(r);
+                 state.translations.push({v1: temp[0], v2: temp[1], pt: temp[2], res: r});
+                 temp = []; save(); draw(); showStatus('Đã tịnh tiến điểm');
+            }
+
+            if (tool === 'projection' && temp.length === 3) { const r={x:0,y:0,name:newName(),generated:true}; state.points.push(r); state.projections.push({point:temp[0], lp1:temp[1], lp2:temp[2], result:r}); temp=[]; save(); draw(); }
+            if (tool === 'fill-polygon' && temp.length >= 3 && (e.shiftKey || temp.length>=10)) { state.fills.push({points: [...temp], color: document.getElementById('fill-color').value, opacity: parseFloat(document.getElementById('opacity').value)/100}); temp=[]; save(); draw(); showStatus('Đã tô đa giác'); }
+            if (tool === 'mark-angle' && temp.length === 3) { state.markAngles.push({p1:temp[0], vertex:temp[1], p2:temp[2]}); temp=[]; save(); draw(); }
+            if (tool === 'mark-right' && temp.length === 3) { state.markRights.push({p1:temp[0], vertex:temp[1], p2:temp[2]}); temp=[]; save(); draw(); }
+            
+            if (tool === 'mark-segment' && temp.length === 2) {
+                 const markStyle = document.getElementById('mark-style').value;
+                 state.markSegments.push({p1:temp[0], p2:temp[1], mark:markStyle});
+                 temp=[]; save(); draw(); showStatus('Đã đánh dấu đoạn');
+            }
+
+            if (tool === 'label' && temp.length === 1) { 
+                const txt = prompt('Tên điểm:', temp[0].name); 
+                if(txt) { temp[0].name = txt; save(); draw(); }
+                temp=[]; 
+            }
+            
+            draw(); // Redraw to show selection
+        }
+    }
+
+    function handleMove(e) {
+        if(e.type === 'touchmove') e.preventDefault();
+        mousePos = getPointerPos(e);
+        
+        // Zoom với chuột lăn
+        if (e.type === 'wheel') {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? 0.9 : 1.1;
+            const worldPosBefore = toWorld(mousePos.x, mousePos.y);
+            
+            scale *= delta;
+            scale = Math.max(0.1, Math.min(10, scale)); // Giới hạn zoom
+            
+            const worldPosAfter = toWorld(mousePos.x, mousePos.y);
+            offsetX += (worldPosAfter.x - worldPosBefore.x) * (BASE_SCALE * scale);
+            offsetY -= (worldPosAfter.y - worldPosBefore.y) * (BASE_SCALE * scale);
+            
+            draw();
+            return;
+        }
+        
+        if (isPanning) {
+            const dx = mousePos.x - lastMousePos.x;
+            const dy = mousePos.y - lastMousePos.y;
+            offsetX += dx;
+            offsetY += dy;
+            lastMousePos = mousePos;
+            draw();
+        } else if (moving) { 
+            if(moving.generated) return;
+            const snapped = snapPoint(mousePos.x, mousePos.y);
+            moving.x = snapped.x; 
+            moving.y = snapped.y; 
+            draw(); 
+        } else {
+            // Always redraw to show preview lines/hover effects
+            draw();
+        }
+    }
+
+    function handleEnd(e) {
+        if(e.type === 'touchend') e.preventDefault();
+        if (moving) { save(); moving = null; }
+        if (isPanning) { 
+            isPanning = false; 
+            canvas.style.cursor = 'crosshair';
+        }
+    }
+
+    // Gán Event Listeners
+    canvas.addEventListener('mousedown', handleStart);
+    canvas.addEventListener('mousemove', handleMove);
+    canvas.addEventListener('mouseup', handleEnd);
+    canvas.addEventListener('wheel', handleMove, {passive: false});
+    canvas.addEventListener('touchstart', handleStart, {passive: false});
+    canvas.addEventListener('touchmove', handleMove, {passive: false});
+    canvas.addEventListener('touchend', handleEnd, {passive: false});
+
+    document.addEventListener('keydown', e => { 
+        if(e.key==='Escape'){temp=[]; moving=null; draw();} 
+        if(e.ctrlKey && e.key==='z'){e.preventDefault(); document.getElementById('geo-undo').click();} 
+        if(e.ctrlKey && e.key==='y'){e.preventDefault(); document.getElementById('geo-redo').click();} 
+    });
+
+    // UI Bindings
+    document.querySelectorAll('#geo-toolbar button').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (btn.id.startsWith('tool-')) {
+                document.querySelectorAll('#geo-toolbar button').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active'); 
+                tool = btn.id.replace('tool-', ''); 
+                temp = []; 
+                showStatus(`Công cụ: ${btn.textContent}`); 
+                
+                // Thay đổi cursor
+                if (tool === 'move') {
+                    canvas.style.cursor = 'grab';
+                } else if (tool === 'delete') {
+                    canvas.style.cursor = 'not-allowed';
+                } else {
+                    canvas.style.cursor = 'crosshair';
+                }
+                
+                draw();
+            }
+        });
+    });
+    
+    document.getElementById('geo-undo').onclick = () => { if(historyIndex>0){historyIndex--; state=JSON.parse(JSON.stringify(history[historyIndex])); draw(); document.getElementById('geo-redo').disabled=false; if(historyIndex===0)document.getElementById('geo-undo').disabled=true;} };
+    document.getElementById('geo-redo').onclick = () => { if(historyIndex<history.length-1){historyIndex++; state=JSON.parse(JSON.stringify(history[historyIndex])); draw(); document.getElementById('geo-undo').disabled=false; if(historyIndex===history.length-1)document.getElementById('geo-redo').disabled=true;} };
+    document.getElementById('geo-copy').onclick = () => { codeEl.select(); document.execCommand('copy'); showStatus('Đã sao chép!'); };
+    document.getElementById('geo-export').onclick = () => { const link = document.createElement('a'); link.download = 'hinh-tkz.png'; link.href = canvas.toDataURL(); link.click(); };
+    document.getElementById('geo-zoom-reset').onclick = function() { 
+        scale = 1.0; 
+        offsetX = 0; 
+        offsetY = 0; 
+        draw(); 
+        showStatus('Đã reset zoom và vị trí');
+    };
+    
+    document.getElementById('toggle-grid').onclick = function() { 
+        showGrid=!showGrid; 
+        this.textContent=showGrid?'🔲 Tắt lưới':'🔲 Bật lưới'; 
+        draw(); 
+    };
+    
+    document.getElementById('toggle-snap').onclick = function() { 
+        snapToGrid=!snapToGrid; 
+        this.textContent=snapToGrid?'🧲 Tắt snap':'🧲 Bật snap'; 
+    };
+    
+    document.getElementById('toggle-axes').onclick = function() { 
+        showAxes=!showAxes; 
+        this.textContent=showAxes?'📏 Tắt trục':'📏 Bật trục'; 
+        draw(); 
+    };
+    
+    document.getElementById('clear').onclick = () => { if(confirm('Xóa hết?')) { location.reload(); } };
+    
+    ['color','thickness','fill-color','opacity','line-style'].forEach(id => document.getElementById(id).addEventListener(id==='opacity'?'input':'change', draw));
+
+    window.geo_init = function() { 
+        window.geo_resize(); 
+        // Thêm nút reset zoom vào header
+        document.getElementById('geo-zoom-reset').addEventListener('click', function() {
+            scale = 1.0;
+            offsetX = 0;
+            offsetY = 0;
+            draw();
+            showStatus('Đã reset zoom và vị trí');
+        });
+    };
+})();
+</script>
+<script>
+function openGuide(){
+    const modal = new bootstrap.Modal(document.getElementById('guideModal'));
+    modal.show();
+}
+</script>
+</body>
+</html>
